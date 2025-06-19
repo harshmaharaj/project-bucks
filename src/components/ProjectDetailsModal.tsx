@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar, Clock, DollarSign } from 'lucide-react';
 import {
@@ -92,7 +91,6 @@ const ProjectDetailsModal = ({ project, open, onOpenChange }: ProjectDetailsModa
             <div className="text-center">
               <div className="text-sm text-gray-600">Total Earnings</div>
               <div className="text-2xl font-bold flex items-center justify-center gap-1">
-                <DollarSign className="w-5 h-5" />
                 {project.rate_currency} {totalEarnings.toFixed(2)}
               </div>
             </div>
@@ -137,7 +135,6 @@ const ProjectDetailsModal = ({ project, open, onOpenChange }: ProjectDetailsModa
                           {calculateSessionHours(session.duration)}h
                         </TableCell>
                         <TableCell className="flex items-center gap-1">
-                          <DollarSign className="w-4 h-4" />
                           {project.rate_currency} {calculateSessionEarning(session.duration)}
                         </TableCell>
                       </TableRow>

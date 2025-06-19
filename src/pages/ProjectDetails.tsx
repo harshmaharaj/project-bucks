@@ -125,7 +125,6 @@ const ProjectDetails = () => {
             
             <div className="text-gray-600">
               <span className="inline-flex items-center mr-4">
-                <DollarSign className="w-4 h-4 mr-1" />
                 {project.hourly_rate} {project.rate_currency}/hour
               </span>
               <span>{project.committed_weekly_hours}h/week commitment</span>
@@ -150,7 +149,6 @@ const ProjectDetails = () => {
                 <div className="text-center p-4 bg-purple-50 rounded-lg">
                   <div className="text-sm text-gray-600 mb-1">Total Earnings</div>
                   <div className="text-3xl font-bold text-purple-600 flex items-center justify-center gap-1">
-                    <DollarSign className="w-6 h-6" />
                     {project.rate_currency} {totalEarnings.toFixed(2)}
                   </div>
                 </div>
@@ -200,7 +198,6 @@ const ProjectDetails = () => {
                             {calculateSessionHours(session.duration)}h
                           </TableCell>
                           <TableCell className="flex items-center gap-1">
-                            <DollarSign className="w-4 h-4" />
                             {project.rate_currency} {calculateSessionEarning(session.duration)}
                           </TableCell>
                         </TableRow>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Square, DollarSign, MoreVertical, Eye, Trash2, RotateCcw } from 'lucide-react';
@@ -143,7 +144,6 @@ const ProjectCard = ({
           
           <div className="flex items-center justify-between text-sm text-gray-600">
             <div className="flex items-center">
-              <DollarSign className="w-4 h-4 mr-1" />
               {project.hourly_rate} {project.rate_currency}/hour
             </div>
             <div className="text-xs">
