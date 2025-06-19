@@ -184,27 +184,6 @@ export const useProjects = () => {
     }
   }, [user, userRole]);
 
-  // Update running timers every second
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProjects(prevProjects => 
-        prevProjects.map(project => {
-          if (project.is_running && project.start_time) {
-            const currentTime = Date.now();
-            const sessionTime = Math.floor((currentTime - project.start_time) / 1000);
-            return {
-              ...project,
-              total_time: project.total_time + sessionTime - (project.sessions[project.sessions.length - 1]?.duration || 0)
-            };
-          }
-          return project;
-        })
-      );
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
-
   return {
     projects,
     loading,

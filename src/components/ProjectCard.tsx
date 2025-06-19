@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, Square, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatTime, calculateEarnings, getCurrentSessionTime, getWeeklyProgress } from '@/utils/timeUtils';
+import { formatTime, calculateEarnings, getWeeklyProgress } from '@/utils/timeUtils';
 
 interface Project {
   id: string;
@@ -28,7 +28,34 @@ interface ProjectCardProps {
 }
 
 const ProjectCard = ({ project, userRole, currentUserId, onStartTimer, onStopTimer }: ProjectCardProps) => {
-  const currentSessionTime = getCurrentSessionTime(project);
+  const [currentTime, setCurrentTime] = useState(Date.now());
+  
+  // Update current time every second for running timers
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (project.is_running) {
+      interval = setInterval(() => {
+        setCurrentTime(Date.now());
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [project.is_running]);
+
+  // Calculate current session time in seconds
+  const getCurrentSessionTime = () => {
+    if (!project.is_running || !project.start_time) {
+      return 0;
+    }
+    return Math.floor((currentTime - project.start_time) / 1000);
+  };
+
+  const currentSessionTime = getCurrentSessionTime();
   const totalTimeWithSession = project.total_time + currentSessionTime;
   const weeklyProgress = getWeeklyProgress(totalTimeWithSession, project.committed_weekly_hours);
 
@@ -72,6 +99,11 @@ const ProjectCard = ({ project, userRole, currentUserId, onStartTimer, onStopTim
           <div className="text-3xl font-mono font-bold text-gray-900 mb-1">
             {formatTime(totalTimeWithSession)}
           </div>
+          {project.is_running && (
+            <div className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full inline-block mb-2">
+              ● Timer Running
+            </div>
+          )}
           <div className="text-sm text-gray-600">
             Earnings: {project.rate_currency} {calculateEarnings(totalTimeWithSession, project.hourly_rate)}
           </div>
