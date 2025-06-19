@@ -9,16 +9,147 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          committed_weekly_hours: number
+          created_at: string
+          hourly_rate: number
+          id: string
+          is_running: boolean
+          name: string
+          rate_currency: string
+          start_time: number | null
+          total_time: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          committed_weekly_hours: number
+          created_at?: string
+          hourly_rate: number
+          id?: string
+          is_running?: boolean
+          name: string
+          rate_currency?: string
+          start_time?: number | null
+          total_time?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          committed_weekly_hours?: number
+          created_at?: string
+          hourly_rate?: number
+          id?: string
+          is_running?: boolean
+          name?: string
+          rate_currency?: string
+          start_time?: number | null
+          total_time?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      time_sessions: {
+        Row: {
+          created_at: string
+          duration: number
+          end_time: number | null
+          id: string
+          project_id: string
+          start_time: number
+        }
+        Insert: {
+          created_at?: string
+          duration?: number
+          end_time?: number | null
+          id?: string
+          project_id: string
+          start_time: number
+        }
+        Update: {
+          created_at?: string
+          duration?: number
+          end_time?: number | null
+          id?: string
+          project_id?: string
+          start_time?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_sessions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +264,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin", "user"],
+    },
   },
 } as const
