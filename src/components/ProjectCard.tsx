@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Play, Square, DollarSign, MoreVertical, Eye, Trash2, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +19,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import ProjectDetailsModal from '@/components/ProjectDetailsModal';
 import { formatTime, calculateEarnings, getWeeklyProgress } from '@/utils/timeUtils';
 
 interface Project {
@@ -41,7 +41,6 @@ interface ProjectCardProps {
   currentUserId?: string;
   onStartTimer: (projectId: string) => void;
   onStopTimer: (projectId: string) => void;
-  onViewProject?: (project: Project) => void;
   onDeleteProject?: (projectId: string) => void;
   onResetWeek?: (projectId: string) => void;
 }
@@ -52,13 +51,12 @@ const ProjectCard = ({
   currentUserId, 
   onStartTimer, 
   onStopTimer,
-  onViewProject,
   onDeleteProject,
   onResetWeek
 }: ProjectCardProps) => {
+  const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   
   // Update current time every second for running timers
   useEffect(() => {
@@ -93,7 +91,7 @@ const ProjectCard = ({
   const canManageProject = userRole === 'super_admin' || project.user_id === currentUserId;
 
   const handleViewProject = () => {
-    setIsDetailsModalOpen(true);
+    navigate(`/project/${project.id}`);
   };
 
   const handleDeleteProject = () => {
@@ -220,13 +218,6 @@ const ProjectCard = ({
             </div>
           )}
         </CardContent>
-
-        {/* Project Details Modal */}
-        <ProjectDetailsModal
-          project={project}
-          open={isDetailsModalOpen}
-          onOpenChange={setIsDetailsModalOpen}
-        />
 
         {/* Delete Confirmation Dialog */}
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>

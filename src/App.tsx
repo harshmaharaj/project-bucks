@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Users from "./pages/Users";
 import UserProjects from "./pages/UserProjects";
+import ProjectDetails from "./pages/ProjectDetails";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,11 @@ const App = () => (
             <Route path="/user/:userId" element={
               <ProtectedRoute>
                 <UserProjects />
+              </ProtectedRoute>
+            } />
+            <Route path="/project/:projectId" element={
+              <ProtectedRoute>
+                <ProjectDetails />
               </ProtectedRoute>
             } />
             <Route path="*" element={<NotFound />} />
