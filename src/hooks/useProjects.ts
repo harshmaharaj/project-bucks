@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface Project {
   id: string;
@@ -21,45 +21,46 @@ export const useProjects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const { user, userRole } = useAuth();
-  const { toast } = useToast();
 
   const fetchProjects = async () => {
+    if (!user) return;
+
     try {
       setLoading(true);
-      let query = supabase.from('projects').select(`
-        *,
-        time_sessions(*)
-      `);
-
-      if (userRole === 'super_admin') {
-        query = supabase.from('projects').select(`
+      let query = supabase
+        .from('projects')
+        .select(`
           *,
-          time_sessions(*),
-          profiles(email)
-        `);
+          profiles!projects_user_id_fkey(email),
+          time_sessions(*)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (userRole !== 'super_admin') {
+        query = query.eq('user_id', user.id);
       }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
+      const { data, error } = await query;
 
       if (error) throw error;
 
-      const projectsWithSessions = data?.map((project: any) => ({
+      const projectsWithSessions = data.map(project => ({
         ...project,
-        sessions: project.time_sessions || [],
-        user_email: project.profiles?.email || 'Unknown'
-      })) || [];
+        user_email: project.profiles?.email || 'Unknown',
+        sessions: project.time_sessions || []
+      }));
 
       setProjects(projectsWithSessions);
     } catch (error) {
       console.error('Error fetching projects:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch projects",
-        variant: "destructive"
-      });
+      toast.error('Failed to load projects');
     } finally {
       setLoading(false);
     }
+  };
+
+  const refetchProjects = async () => {
+    await fetchProjects();
   };
 
   const startTimer = async (projectId: string) => {
@@ -262,8 +263,8 @@ export const useProjects = () => {
     startTimer,
     stopTimer,
     addProject,
-    fetchProjects,
     deleteProject,
-    resetWeek
+    resetWeek,
+    refetchProjects
   };
 };

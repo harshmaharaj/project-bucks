@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Clock, DollarSign } from 'lucide-react';
@@ -13,14 +12,22 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useProjects } from '@/hooks/useProjects';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import Navbar from '@/components/Navbar';
+import PullToRefresh from '@/components/PullToRefresh';
 
 const ProjectDetails = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { projects, loading } = useProjects();
+  const { projects, loading, refetchProjects } = useProjects();
 
   const project = projects.find(p => p.id === projectId);
+
+  // Pull to refresh functionality
+  const { isRefreshing, pullDistance } = usePullToRefresh({
+    onRefresh: refetchProjects,
+    threshold: 80
+  });
 
   if (loading) {
     return (
@@ -91,6 +98,11 @@ const ProjectDetails = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <PullToRefresh 
+        isRefreshing={isRefreshing} 
+        pullDistance={pullDistance} 
+        threshold={80} 
+      />
       <Navbar />
       
       <div className="p-4">

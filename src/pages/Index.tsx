@@ -7,7 +7,9 @@ import Navbar from '@/components/Navbar';
 import AdminStats from '@/components/AdminStats';
 import ProjectForm from '@/components/ProjectForm';
 import ProjectCard from '@/components/ProjectCard';
+import PullToRefresh from '@/components/PullToRefresh';
 import { useProjects } from '@/hooks/useProjects';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 const Index = () => {
   const [allUsers, setAllUsers] = useState<any[]>([]);
@@ -19,8 +21,22 @@ const Index = () => {
     stopTimer, 
     addProject, 
     deleteProject, 
-    resetWeek
+    resetWeek,
+    refetchProjects
   } = useProjects();
+
+  // Pull to refresh functionality
+  const handleRefresh = async () => {
+    await refetchProjects();
+    if (userRole === 'super_admin') {
+      await fetchAllUsers();
+    }
+  };
+
+  const { isRefreshing, pullDistance } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 80
+  });
 
   // Fetch all users for super admin
   const fetchAllUsers = async () => {
@@ -61,6 +77,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <PullToRefresh 
+        isRefreshing={isRefreshing} 
+        pullDistance={pullDistance} 
+        threshold={80} 
+      />
       <Navbar />
       
       <div className="p-4">
