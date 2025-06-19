@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,6 +13,8 @@ interface Project {
   id: string;
   name: string;
   hourlyRate: number;
+  rateCurrency: string;
+  committedWeeklyHours: number;
   totalTime: number; // in seconds
   isRunning: boolean;
   startTime?: number;
@@ -29,6 +32,8 @@ const Index = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectRate, setNewProjectRate] = useState<number>(50);
+  const [newProjectCurrency, setNewProjectCurrency] = useState<string>('USD');
+  const [newProjectWeeklyHours, setNewProjectWeeklyHours] = useState<number>(40);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -81,10 +86,30 @@ const Index = () => {
       return;
     }
 
+    if (newProjectRate <= 0) {
+      toast({
+        title: "Error",
+        description: "Hourly rate must be greater than 0",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (newProjectWeeklyHours <= 0) {
+      toast({
+        title: "Error",
+        description: "Committed weekly hours must be greater than 0",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const newProject: Project = {
       id: Date.now().toString(),
       name: newProjectName.trim(),
       hourlyRate: newProjectRate,
+      rateCurrency: newProjectCurrency,
+      committedWeeklyHours: newProjectWeeklyHours,
       totalTime: 0,
       isRunning: false,
       sessions: []
@@ -93,6 +118,8 @@ const Index = () => {
     setProjects(prev => [...prev, newProject]);
     setNewProjectName('');
     setNewProjectRate(50);
+    setNewProjectCurrency('USD');
+    setNewProjectWeeklyHours(40);
     setIsDialogOpen(false);
     
     toast({
@@ -183,6 +210,12 @@ const Index = () => {
     return Math.floor((Date.now() - project.startTime) / 1000);
   };
 
+  const getWeeklyProgress = (project: Project) => {
+    const hours = project.totalTime / 3600;
+    const percentage = (hours / project.committedWeeklyHours) * 100;
+    return Math.min(percentage, 100);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-md mx-auto">
@@ -218,14 +251,43 @@ const Index = () => {
                   className="mt-1"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="hourlyRate">Hourly Rate</Label>
+                  <Input
+                    id="hourlyRate"
+                    type="number"
+                    value={newProjectRate}
+                    onChange={(e) => setNewProjectRate(Number(e.target.value))}
+                    placeholder="50"
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="currency">Currency</Label>
+                  <Select value={newProjectCurrency} onValueChange={setNewProjectCurrency}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="USD" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                      <SelectItem value="GBP">GBP</SelectItem>
+                      <SelectItem value="CAD">CAD</SelectItem>
+                      <SelectItem value="AUD">AUD</SelectItem>
+                      <SelectItem value="INR">INR</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <div>
-                <Label htmlFor="hourlyRate">Hourly Rate ($)</Label>
+                <Label htmlFor="weeklyHours">Committed Weekly Hours</Label>
                 <Input
-                  id="hourlyRate"
+                  id="weeklyHours"
                   type="number"
-                  value={newProjectRate}
-                  onChange={(e) => setNewProjectRate(Number(e.target.value))}
-                  placeholder="50"
+                  value={newProjectWeeklyHours}
+                  onChange={(e) => setNewProjectWeeklyHours(Number(e.target.value))}
+                  placeholder="40"
                   className="mt-1"
                 />
               </div>
@@ -250,9 +312,27 @@ const Index = () => {
               <Card key={project.id} className="overflow-hidden shadow-lg border-0 bg-white">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg font-semibold text-gray-900">{project.name}</CardTitle>
-                  <div className="flex items-center text-sm text-gray-600">
-                    <DollarSign className="w-4 h-4 mr-1" />
-                    ${project.hourlyRate}/hour
+                  <div className="flex items-center justify-between text-sm text-gray-600">
+                    <div className="flex items-center">
+                      <DollarSign className="w-4 h-4 mr-1" />
+                      {project.hourlyRate} {project.rateCurrency}/hour
+                    </div>
+                    <div className="text-xs">
+                      {project.committedWeeklyHours}h/week
+                    </div>
+                  </div>
+                  {/* Weekly Progress Bar */}
+                  <div className="mt-2">
+                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                      <span>Weekly Progress</span>
+                      <span>{((project.totalTime + getCurrentSessionTime(project)) / 3600).toFixed(1)}h / {project.committedWeeklyHours}h</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${getWeeklyProgress(project)}%` }}
+                      ></div>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -262,7 +342,7 @@ const Index = () => {
                       {formatTime(project.totalTime + getCurrentSessionTime(project))}
                     </div>
                     <div className="text-sm text-gray-600">
-                      Earnings: ${calculateEarnings({
+                      Earnings: {project.rateCurrency} {calculateEarnings({
                         ...project,
                         totalTime: project.totalTime + getCurrentSessionTime(project)
                       })}
