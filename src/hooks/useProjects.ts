@@ -64,7 +64,7 @@ export const useProjects = () => {
 
       const projectsWithSessions = projectsWithEmails?.map(project => ({
         ...project,
-        user_email: project.user_email || 'Unknown',
+        user_email: userRole === 'super_admin' ? (project as any).user_email || 'Unknown' : undefined,
         sessions: project.time_sessions || []
       })) || [];
 
