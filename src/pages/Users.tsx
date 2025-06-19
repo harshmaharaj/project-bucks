@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Users as UsersIcon, Eye, Crown, User } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Users as UsersIcon, User } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -86,7 +85,7 @@ const Users = () => {
     }
   }, [userRole]);
 
-  const viewUserProjects = (userId: string, userEmail: string) => {
+  const handleUserClick = (userId: string, userEmail: string) => {
     navigate(`/user/${userId}`, { state: { userEmail } });
   };
 
@@ -120,11 +119,11 @@ const Users = () => {
               <UsersIcon className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
-            <p className="text-gray-600">Manage and view user accounts</p>
+            <p className="text-gray-600">Tap on any user to view their projects</p>
           </div>
 
           {/* Users List */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {users.length === 0 ? (
               <Card className="text-center py-12">
                 <CardContent>
@@ -134,49 +133,28 @@ const Users = () => {
               </Card>
             ) : (
               users.map((user) => (
-                <Card key={user.id} className="overflow-hidden shadow-lg border-0 bg-white">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center space-x-2">
-                          {user.role === 'super_admin' ? (
-                            <Crown className="w-5 h-5 text-yellow-500" />
-                          ) : (
-                            <User className="w-5 h-5 text-gray-500" />
-                          )}
-                          <div>
-                            <CardTitle className="text-lg font-semibold text-gray-900">
-                              {user.full_name || 'Unnamed User'}
-                            </CardTitle>
-                            <p className="text-sm text-gray-600">{user.email}</p>
-                          </div>
-                        </div>
+                <Card 
+                  key={user.id} 
+                  className="cursor-pointer hover:shadow-lg transition-shadow duration-200 border-0 bg-white"
+                  onClick={() => handleUserClick(user.id, user.email)}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                        <User className="w-5 h-5 text-white" />
                       </div>
-                      <div className="flex items-center space-x-3">
-                        <div className="text-right">
-                          <div className={`text-xs px-2 py-1 rounded-full ${
-                            user.role === 'super_admin' 
-                              ? 'bg-yellow-100 text-yellow-800' 
-                              : 'bg-blue-100 text-blue-800'
-                          }`}>
-                            {user.role === 'super_admin' ? 'Super Admin' : 'User'}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            Joined {new Date(user.created_at).toLocaleDateString()}
-                          </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {user.full_name || 'Unnamed User'}
+                        </h3>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs text-gray-500">
+                          Click to view projects
                         </div>
-                        <Button
-                          onClick={() => viewUserProjects(user.id, user.email)}
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center space-x-1"
-                        >
-                          <Eye className="w-4 h-4" />
-                          <span>View Projects</span>
-                        </Button>
                       </div>
                     </div>
-                  </CardHeader>
+                  </CardContent>
                 </Card>
               ))
             )}
