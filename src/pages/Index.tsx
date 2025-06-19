@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,7 +12,16 @@ import { useProjects } from '@/hooks/useProjects';
 const Index = () => {
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const { user, userRole } = useAuth();
-  const { projects, loading, startTimer, stopTimer, addProject } = useProjects();
+  const { 
+    projects, 
+    loading, 
+    startTimer, 
+    stopTimer, 
+    addProject, 
+    deleteProject, 
+    resetWeek, 
+    viewProject 
+  } = useProjects();
 
   // Fetch all users for super admin
   const fetchAllUsers = async () => {
@@ -102,6 +110,9 @@ const Index = () => {
                   currentUserId={user?.id}
                   onStartTimer={startTimer}
                   onStopTimer={stopTimer}
+                  onViewProject={viewProject}
+                  onDeleteProject={deleteProject}
+                  onResetWeek={resetWeek}
                 />
               ))
             )}

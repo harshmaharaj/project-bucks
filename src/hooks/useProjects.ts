@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -174,6 +173,88 @@ export const useProjects = () => {
     }
   };
 
+  const deleteProject = async (projectId: string) => {
+    try {
+      // First delete all time sessions for this project
+      const { error: sessionsError } = await supabase
+        .from('time_sessions')
+        .delete()
+        .eq('project_id', projectId);
+
+      if (sessionsError) throw sessionsError;
+
+      // Then delete the project
+      const { error: projectError } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId);
+
+      if (projectError) throw projectError;
+
+      // Update local state
+      setProjects(prev => prev.filter(p => p.id !== projectId));
+
+      toast({
+        title: "Project Deleted",
+        description: "Project and all associated time sessions have been deleted"
+      });
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete project",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const resetWeek = async (projectId: string) => {
+    try {
+      // Calculate the start of the current week (Monday)
+      const now = new Date();
+      const currentDay = now.getDay();
+      const daysToMonday = currentDay === 0 ? 6 : currentDay - 1;
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - daysToMonday);
+      weekStart.setHours(0, 0, 0, 0);
+
+      const weekStartTimestamp = weekStart.getTime();
+
+      // Delete all time sessions for this week
+      const { error: sessionsError } = await supabase
+        .from('time_sessions')
+        .delete()
+        .eq('project_id', projectId)
+        .gte('start_time', weekStartTimestamp);
+
+      if (sessionsError) throw sessionsError;
+
+      // Fetch updated project data
+      await fetchProjects();
+
+      toast({
+        title: "Week Reset",
+        description: "This week's time sessions have been cleared"
+      });
+    } catch (error) {
+      console.error('Error resetting week:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reset week",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const viewProject = (project: Project) => {
+    // For now, just show a toast with project details
+    // This can be expanded to show a detailed view modal
+    toast({
+      title: project.name,
+      description: `${project.sessions.length} sessions • ${(project.total_time / 3600).toFixed(1)} hours total • ${project.rate_currency} ${((project.total_time / 3600) * project.hourly_rate).toFixed(2)} earned`
+    });
+  };
+
   const addProject = (newProject: Project) => {
     setProjects(prev => [newProject, ...prev]);
   };
@@ -190,6 +271,9 @@ export const useProjects = () => {
     startTimer,
     stopTimer,
     addProject,
-    fetchProjects
+    fetchProjects,
+    deleteProject,
+    resetWeek,
+    viewProject
   };
 };

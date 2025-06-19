@@ -1,8 +1,25 @@
 
 import React, { useState, useEffect } from 'react';
-import { Play, Square, DollarSign } from 'lucide-react';
+import { Play, Square, DollarSign, MoreVertical, Eye, Trash2, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { formatTime, calculateEarnings, getWeeklyProgress } from '@/utils/timeUtils';
 
 interface Project {
@@ -25,10 +42,23 @@ interface ProjectCardProps {
   currentUserId?: string;
   onStartTimer: (projectId: string) => void;
   onStopTimer: (projectId: string) => void;
+  onViewProject?: (project: Project) => void;
+  onDeleteProject?: (projectId: string) => void;
+  onResetWeek?: (projectId: string) => void;
 }
 
-const ProjectCard = ({ project, userRole, currentUserId, onStartTimer, onStopTimer }: ProjectCardProps) => {
+const ProjectCard = ({ 
+  project, 
+  userRole, 
+  currentUserId, 
+  onStartTimer, 
+  onStopTimer,
+  onViewProject,
+  onDeleteProject,
+  onResetWeek
+}: ProjectCardProps) => {
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
   // Update current time every second for running timers
   useEffect(() => {
@@ -60,11 +90,60 @@ const ProjectCard = ({ project, userRole, currentUserId, onStartTimer, onStopTim
   const weeklyProgress = getWeeklyProgress(totalTimeWithSession, project.committed_weekly_hours);
 
   const canControlTimer = userRole !== 'super_admin' && project.user_id === currentUserId;
+  const canManageProject = userRole === 'super_admin' || project.user_id === currentUserId;
+
+  const handleViewProject = () => {
+    if (onViewProject) {
+      onViewProject(project);
+    }
+  };
+
+  const handleDeleteProject = () => {
+    if (onDeleteProject) {
+      onDeleteProject(project.id);
+    }
+    setIsDeleteDialogOpen(false);
+  };
+
+  const handleResetWeek = () => {
+    if (onResetWeek) {
+      onResetWeek(project.id);
+    }
+  };
 
   return (
     <Card className="overflow-hidden shadow-lg border-0 bg-white">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold text-gray-900">{project.name}</CardTitle>
+        <div className="flex items-start justify-between">
+          <CardTitle className="text-lg font-semibold text-gray-900 flex-1">{project.name}</CardTitle>
+          {canManageProject && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg">
+                <DropdownMenuItem onClick={handleViewProject} className="cursor-pointer">
+                  <Eye className="mr-2 h-4 w-4" />
+                  View project
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleResetWeek} className="cursor-pointer">
+                  <RotateCcw className="mr-2 h-4 w-4" />
+                  Reset week
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setIsDeleteDialogOpen(true)} 
+                  className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete project
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+        
         <div className="flex items-center justify-between text-sm text-gray-600">
           <div className="flex items-center">
             <DollarSign className="w-4 h-4 mr-1" />
@@ -74,11 +153,13 @@ const ProjectCard = ({ project, userRole, currentUserId, onStartTimer, onStopTim
             {project.committed_weekly_hours}h/week
           </div>
         </div>
+        
         {userRole === 'super_admin' && (
           <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
             Owner: {project.user_email}
           </div>
         )}
+        
         {/* Weekly Progress Bar */}
         <div className="mt-2">
           <div className="flex justify-between text-xs text-gray-500 mb-1">
@@ -93,6 +174,7 @@ const ProjectCard = ({ project, userRole, currentUserId, onStartTimer, onStopTim
           </div>
         </div>
       </CardHeader>
+      
       <CardContent className="space-y-4">
         {/* Time Display */}
         <div className="text-center">
@@ -139,6 +221,27 @@ const ProjectCard = ({ project, userRole, currentUserId, onStartTimer, onStopTim
           </div>
         )}
       </CardContent>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Project</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{project.name}"? This action cannot be undone and will remove all associated time sessions.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteProject}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
