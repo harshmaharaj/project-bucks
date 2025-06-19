@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,7 +32,6 @@ export const useProjects = () => {
         .from('projects')
         .select(`
           *,
-          profiles!projects_user_id_fkey(email),
           time_sessions(*)
         `)
         .order('created_at', { ascending: false });
@@ -44,11 +44,29 @@ export const useProjects = () => {
 
       if (error) throw error;
 
-      const projectsWithSessions = data.map(project => ({
+      // Get user emails separately if super admin
+      let projectsWithEmails = data;
+      if (userRole === 'super_admin' && data && data.length > 0) {
+        const userIds = [...new Set(data.map(project => project.user_id))];
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, email')
+          .in('id', userIds);
+
+        projectsWithEmails = data.map(project => {
+          const profile = profiles?.find(p => p.id === project.user_id);
+          return {
+            ...project,
+            user_email: profile?.email || 'Unknown'
+          };
+        });
+      }
+
+      const projectsWithSessions = projectsWithEmails?.map(project => ({
         ...project,
-        user_email: project.profiles?.email || 'Unknown',
+        user_email: project.user_email || 'Unknown',
         sessions: project.time_sessions || []
-      }));
+      })) || [];
 
       setProjects(projectsWithSessions);
     } catch (error) {
@@ -100,17 +118,10 @@ export const useProjects = () => {
         }))
       );
 
-      toast({
-        title: "Timer Started",
-        description: "Time tracking has begun for this project"
-      });
+      toast.success('Timer started - Time tracking has begun for this project');
     } catch (error) {
       console.error('Error starting timer:', error);
-      toast({
-        title: "Error",
-        description: "Failed to start timer",
-        variant: "destructive"
-      });
+      toast.error('Failed to start timer');
     }
   };
 
@@ -160,17 +171,10 @@ export const useProjects = () => {
         )
       );
 
-      toast({
-        title: "Timer Stopped",
-        description: "Time has been recorded for this project"
-      });
+      toast.success('Timer stopped - Time has been recorded for this project');
     } catch (error) {
       console.error('Error stopping timer:', error);
-      toast({
-        title: "Error",
-        description: "Failed to stop timer",
-        variant: "destructive"
-      });
+      toast.error('Failed to stop timer');
     }
   };
 
@@ -195,17 +199,10 @@ export const useProjects = () => {
       // Update local state
       setProjects(prev => prev.filter(p => p.id !== projectId));
 
-      toast({
-        title: "Project Deleted",
-        description: "Project and all associated time sessions have been deleted"
-      });
+      toast.success('Project deleted - Project and all associated time sessions have been deleted');
     } catch (error) {
       console.error('Error deleting project:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete project",
-        variant: "destructive"
-      });
+      toast.error('Failed to delete project');
     }
   };
 
@@ -233,17 +230,10 @@ export const useProjects = () => {
       // Fetch updated project data
       await fetchProjects();
 
-      toast({
-        title: "Week Reset",
-        description: "This week's time sessions have been cleared"
-      });
+      toast.success('Week reset - This week\'s time sessions have been cleared');
     } catch (error) {
       console.error('Error resetting week:', error);
-      toast({
-        title: "Error",
-        description: "Failed to reset week",
-        variant: "destructive"
-      });
+      toast.error('Failed to reset week');
     }
   };
 
