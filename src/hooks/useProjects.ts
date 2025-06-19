@@ -246,15 +246,6 @@ export const useProjects = () => {
     }
   };
 
-  const viewProject = (project: Project) => {
-    // For now, just show a toast with project details
-    // This can be expanded to show a detailed view modal
-    toast({
-      title: project.name,
-      description: `${project.sessions.length} sessions • ${(project.total_time / 3600).toFixed(1)} hours total • ${project.rate_currency} ${((project.total_time / 3600) * project.hourly_rate).toFixed(2)} earned`
-    });
-  };
-
   const addProject = (newProject: Project) => {
     setProjects(prev => [newProject, ...prev]);
   };
@@ -273,7 +264,6 @@ export const useProjects = () => {
     addProject,
     fetchProjects,
     deleteProject,
-    resetWeek,
-    viewProject
+    resetWeek
   };
 };

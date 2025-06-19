@@ -19,8 +19,7 @@ const Index = () => {
     stopTimer, 
     addProject, 
     deleteProject, 
-    resetWeek, 
-    viewProject 
+    resetWeek
   } = useProjects();
 
   // Fetch all users for super admin
@@ -110,7 +109,6 @@ const Index = () => {
                   currentUserId={user?.id}
                   onStartTimer={startTimer}
                   onStopTimer={stopTimer}
-                  onViewProject={viewProject}
                   onDeleteProject={deleteProject}
                   onResetWeek={resetWeek}
                 />

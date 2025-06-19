@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Play, Square, DollarSign, MoreVertical, Eye, Trash2, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,8 +17,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import ProjectDetailsModal from '@/components/ProjectDetailsModal';
 import { formatTime, calculateEarnings, getWeeklyProgress } from '@/utils/timeUtils';
 
 interface Project {
@@ -59,6 +58,7 @@ const ProjectCard = ({
 }: ProjectCardProps) => {
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   
   // Update current time every second for running timers
   useEffect(() => {
@@ -93,9 +93,7 @@ const ProjectCard = ({
   const canManageProject = userRole === 'super_admin' || project.user_id === currentUserId;
 
   const handleViewProject = () => {
-    if (onViewProject) {
-      onViewProject(project);
-    }
+    setIsDetailsModalOpen(true);
   };
 
   const handleDeleteProject = () => {
@@ -112,137 +110,146 @@ const ProjectCard = ({
   };
 
   return (
-    <Card className="overflow-hidden shadow-lg border-0 bg-white">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <CardTitle className="text-lg font-semibold text-gray-900 flex-1">{project.name}</CardTitle>
-          {canManageProject && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg">
-                <DropdownMenuItem onClick={handleViewProject} className="cursor-pointer">
-                  <Eye className="mr-2 h-4 w-4" />
-                  View project
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleResetWeek} className="cursor-pointer">
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  Reset week
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setIsDeleteDialogOpen(true)} 
-                  className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete project
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
-        
-        <div className="flex items-center justify-between text-sm text-gray-600">
-          <div className="flex items-center">
-            <DollarSign className="w-4 h-4 mr-1" />
-            {project.hourly_rate} {project.rate_currency}/hour
-          </div>
-          <div className="text-xs">
-            {project.committed_weekly_hours}h/week
-          </div>
-        </div>
-        
-        {userRole === 'super_admin' && (
-          <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-            Owner: {project.user_email}
-          </div>
-        )}
-        
-        {/* Weekly Progress Bar */}
-        <div className="mt-2">
-          <div className="flex justify-between text-xs text-gray-500 mb-1">
-            <span>Weekly Progress</span>
-            <span>{(totalTimeWithSession / 3600).toFixed(1)}h / {project.committed_weekly_hours}h</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${weeklyProgress}%` }}
-            ></div>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {/* Time Display */}
-        <div className="text-center">
-          <div className="text-3xl font-mono font-bold text-gray-900 mb-1">
-            {formatTime(totalTimeWithSession)}
-          </div>
-          {project.is_running && (
-            <div className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full inline-block mb-2">
-              ● Timer Running
-            </div>
-          )}
-          <div className="text-sm text-gray-600">
-            Earnings: {project.rate_currency} {calculateEarnings(totalTimeWithSession, project.hourly_rate)}
-          </div>
-        </div>
-
-        {/* Control Button - Only for project owner or if it's the user's own project */}
-        {canControlTimer && (
-          <div className="flex justify-center">
-            {project.is_running ? (
-              <Button
-                onClick={() => onStopTimer(project.id)}
-                className="w-full h-14 text-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
-              >
-                <Square className="w-6 h-6 mr-2" />
-                Stop Timer
-              </Button>
-            ) : (
-              <Button
-                onClick={() => onStartTimer(project.id)}
-                className="w-full h-14 text-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
-              >
-                <Play className="w-6 h-6 mr-2" />
-                Start Timer
-              </Button>
+    <>
+      <Card className="overflow-hidden shadow-lg border-0 bg-white">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <CardTitle className="text-lg font-semibold text-gray-900 flex-1">{project.name}</CardTitle>
+            {canManageProject && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg">
+                  <DropdownMenuItem onClick={handleViewProject} className="cursor-pointer">
+                    <Eye className="mr-2 h-4 w-4" />
+                    View project
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleResetWeek} className="cursor-pointer">
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Reset week
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setIsDeleteDialogOpen(true)} 
+                    className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete project
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
-        )}
-
-        {/* Session Count */}
-        {project.sessions.length > 0 && (
-          <div className="text-center text-sm text-gray-500">
-            {project.sessions.length} session{project.sessions.length !== 1 ? 's' : ''} recorded
+          
+          <div className="flex items-center justify-between text-sm text-gray-600">
+            <div className="flex items-center">
+              <DollarSign className="w-4 h-4 mr-1" />
+              {project.hourly_rate} {project.rate_currency}/hour
+            </div>
+            <div className="text-xs">
+              {project.committed_weekly_hours}h/week
+            </div>
           </div>
-        )}
-      </CardContent>
+          
+          {userRole === 'super_admin' && (
+            <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+              Owner: {project.user_email}
+            </div>
+          )}
+          
+          {/* Weekly Progress Bar */}
+          <div className="mt-2">
+            <div className="flex justify-between text-xs text-gray-500 mb-1">
+              <span>Weekly Progress</span>
+              <span>{(totalTimeWithSession / 3600).toFixed(1)}h / {project.committed_weekly_hours}h</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${weeklyProgress}%` }}
+              ></div>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          {/* Time Display */}
+          <div className="text-center">
+            <div className="text-3xl font-mono font-bold text-gray-900 mb-1">
+              {formatTime(totalTimeWithSession)}
+            </div>
+            {project.is_running && (
+              <div className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded-full inline-block mb-2">
+                ● Timer Running
+              </div>
+            )}
+            <div className="text-sm text-gray-600">
+              Earnings: {project.rate_currency} {calculateEarnings(totalTimeWithSession, project.hourly_rate)}
+            </div>
+          </div>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Project</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "{project.name}"? This action cannot be undone and will remove all associated time sessions.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteProject}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </Card>
+          {/* Control Button - Only for project owner or if it's the user's own project */}
+          {canControlTimer && (
+            <div className="flex justify-center">
+              {project.is_running ? (
+                <Button
+                  onClick={() => onStopTimer(project.id)}
+                  className="w-full h-14 text-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700"
+                >
+                  <Square className="w-6 h-6 mr-2" />
+                  Stop Timer
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => onStartTimer(project.id)}
+                  className="w-full h-14 text-lg bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
+                >
+                  <Play className="w-6 h-6 mr-2" />
+                  Start Timer
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Session Count */}
+          {project.sessions.length > 0 && (
+            <div className="text-center text-sm text-gray-500">
+              {project.sessions.length} session{project.sessions.length !== 1 ? 's' : ''} recorded
+            </div>
+          )}
+        </CardContent>
+
+        {/* Project Details Modal */}
+        <ProjectDetailsModal
+          project={project}
+          open={isDetailsModalOpen}
+          onOpenChange={setIsDetailsModalOpen}
+        />
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Project</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{project.name}"? This action cannot be undone and will remove all associated time sessions.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDeleteProject}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </Card>
+    </>
   );
 };
 
