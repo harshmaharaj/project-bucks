@@ -25,25 +25,39 @@ const DeleteSessionModal = ({ session, project, open, onOpenChange, onSessionDel
   const handleDelete = async () => {
     try {
       setLoading(true);
+      console.log('Deleting session:', session.id, 'for project:', project.id);
 
-      // Delete the session
+      // Calculate the new total time after removing this session
+      const newTotalTime = Math.max(0, project.total_time - session.duration);
+      console.log('Current total time:', project.total_time, 'Session duration:', session.duration, 'New total:', newTotalTime);
+
+      // Delete the session first
       const { error: sessionError } = await supabase
         .from('time_sessions')
         .delete()
         .eq('id', session.id);
 
-      if (sessionError) throw sessionError;
+      if (sessionError) {
+        console.error('Session delete error:', sessionError);
+        throw sessionError;
+      }
+
+      console.log('Session deleted successfully, updating project total time');
 
       // Update the project's total time
       const { error: projectError } = await supabase
         .from('projects')
         .update({
-          total_time: Math.max(0, project.total_time - session.duration)
+          total_time: newTotalTime
         })
         .eq('id', project.id);
 
-      if (projectError) throw projectError;
+      if (projectError) {
+        console.error('Project update error:', projectError);
+        throw projectError;
+      }
 
+      console.log('Project total time updated successfully');
       toast.success('Session deleted successfully');
       onSessionDeleted();
       onOpenChange(false);

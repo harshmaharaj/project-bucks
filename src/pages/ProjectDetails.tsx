@@ -108,20 +108,24 @@ const ProjectDetails = () => {
   }, 0);
 
   const handleEditSession = (session) => {
+    console.log('Opening edit modal for session:', session.id);
     setEditingSession(session);
   };
 
   const handleDeleteSession = (session) => {
+    console.log('Opening delete modal for session:', session.id);
     setDeletingSession(session);
   };
 
-  const handleSessionUpdated = () => {
-    refetchProjects();
+  const handleSessionUpdated = async () => {
+    console.log('Session updated, refreshing project data');
+    await refetchProjects();
     setEditingSession(null);
   };
 
-  const handleSessionDeleted = () => {
-    refetchProjects();
+  const handleSessionDeleted = async () => {
+    console.log('Session deleted, refreshing project data');
+    await refetchProjects();
     setDeletingSession(null);
   };
 
