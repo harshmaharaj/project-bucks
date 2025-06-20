@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,7 +7,7 @@ import Navbar from '@/components/Navbar';
 import AdminStats from '@/components/AdminStats';
 import ProjectCard from '@/components/ProjectCard';
 import PullToRefresh from '@/components/PullToRefresh';
-import EarningsDonutChart from '@/components/EarningsDonutChart';
+import EarningsLineChart from '@/components/EarningsLineChart';
 import { useProjects } from '@/hooks/useProjects';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
@@ -101,7 +100,7 @@ const Index = () => {
           {/* Earnings Chart - Only for regular users */}
           {userRole !== 'super_admin' && projects.length > 0 && (
             <div className="mb-6">
-              <EarningsDonutChart projects={projects} />
+              <EarningsLineChart projects={projects} />
             </div>
           )}
 
