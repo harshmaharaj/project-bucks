@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, DollarSign, User, Crown } from 'lucide-react';
@@ -57,7 +56,7 @@ const UserProjects = () => {
         .from('projects')
         .select(`
           *,
-          time_sessions(*)
+          time_sessions!fk_time_sessions_project_id(*)
         `)
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
