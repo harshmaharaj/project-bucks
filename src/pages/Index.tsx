@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import AdminStats from '@/components/AdminStats';
 import ProjectForm from '@/components/ProjectForm';
 import ProjectCard from '@/components/ProjectCard';
 import PullToRefresh from '@/components/PullToRefresh';
+import EarningsDonutChart from '@/components/EarningsDonutChart';
 import { useProjects } from '@/hooks/useProjects';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
@@ -96,6 +98,13 @@ const Index = () => {
               {userRole === 'super_admin' ? 'Admin Dashboard - All Projects' : 'Track your freelance projects'}
             </p>
           </div>
+
+          {/* Earnings Chart - Only for regular users */}
+          {userRole !== 'super_admin' && projects.length > 0 && (
+            <div className="mb-6">
+              <EarningsDonutChart projects={projects} />
+            </div>
+          )}
 
           {/* Super Admin Stats */}
           {userRole === 'super_admin' && (
