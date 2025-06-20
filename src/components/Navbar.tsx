@@ -5,6 +5,15 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const Navbar = () => {
   const { user, userRole, signOut } = useAuth();
@@ -28,6 +37,13 @@ const Navbar = () => {
   };
 
   if (!user) return null;
+
+  const getUserInitials = () => {
+    if (user.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
+  };
 
   return (
     <div className="bg-white shadow-sm border-b px-4 py-3">
@@ -69,18 +85,76 @@ const Navbar = () => {
         </div>
         
         <div className="flex items-center space-x-3">
-          <span className="text-sm text-gray-600 hidden sm:inline">
-            {user.email}
-          </span>
-          <Button
-            onClick={handleSignOut}
-            variant="outline"
-            size="sm"
-            className="flex items-center space-x-1"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Logout</span>
-          </Button>
+          {/* User Profile Drawer */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="sm" className="p-1 rounded-full">
+                <Avatar className="w-8 h-8">
+                  <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-medium">
+                    {getUserInitials()}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>User Profile</SheetTitle>
+                <SheetDescription>
+                  Manage your account settings and preferences
+                </SheetDescription>
+              </SheetHeader>
+              
+              <div className="flex flex-col space-y-6 mt-6">
+                {/* User Info */}
+                <div className="flex items-center space-x-4">
+                  <Avatar className="w-16 h-16">
+                    <AvatarFallback className="bg-blue-100 text-blue-600 text-xl font-medium">
+                      {getUserInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="font-medium text-gray-900">{user.email}</h3>
+                    <p className="text-sm text-gray-500 capitalize">
+                      {userRole === 'super_admin' ? 'Super Admin' : 'User'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* User Details */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Email</label>
+                    <p className="text-sm text-gray-900 mt-1">{user.email}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">User ID</label>
+                    <p className="text-sm text-gray-500 mt-1 font-mono break-all">{user.id}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">Role</label>
+                    <p className="text-sm text-gray-900 mt-1 capitalize">
+                      {userRole === 'super_admin' ? 'Super Admin' : 'User'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Logout Button */}
+                <div className="pt-4 border-t">
+                  <Button
+                    onClick={handleSignOut}
+                    variant="outline"
+                    size="sm"
+                    className="w-full flex items-center justify-center space-x-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Logout</span>
+                  </Button>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </div>
