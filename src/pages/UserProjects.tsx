@@ -1,13 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Clock, DollarSign, User, Crown } from 'lucide-react';
+import { ArrowLeft, Clock, DollarSign, User, Crown, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
+import ProjectDetailsModal from '@/components/ProjectDetailsModal';
 
 interface Project {
   id: string;
@@ -19,6 +20,7 @@ interface Project {
   is_running: boolean;
   start_time?: number;
   user_id: string;
+  user_email?: string;
   sessions: TimeSession[];
 }
 
@@ -38,6 +40,8 @@ const UserProjects = () => {
   
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const userEmail = location.state?.userEmail || 'Unknown User';
 
   // Redirect if not super admin
@@ -67,13 +71,18 @@ const UserProjects = () => {
       const { data: sessionsData, error: sessionsError } = await supabase
         .from('time_sessions')
         .select('*')
-        .in('project_id', projectsData?.map(p => p.id) || []);
+        .in('project_id', projectsData?.map(p => p.id) || [])
+        .order('start_time', { ascending: false });
 
       if (sessionsError) throw sessionsError;
+
+      console.log('Fetched projects:', projectsData);
+      console.log('Fetched sessions:', sessionsData);
 
       // Combine the data
       const projectsWithSessions = projectsData?.map((project: any) => ({
         ...project,
+        user_email: userEmail,
         sessions: sessionsData?.filter(session => session.project_id === project.id) || []
       })) || [];
 
@@ -140,6 +149,12 @@ const UserProjects = () => {
     return Math.min(percentage, 100);
   };
 
+  const handleViewDetails = (project: Project) => {
+    console.log('Opening details for project:', project);
+    setSelectedProject(project);
+    setDetailsModalOpen(true);
+  };
+
   if (userRole !== 'super_admin') {
     return null;
   }
@@ -202,7 +217,18 @@ const UserProjects = () => {
               projects.map((project) => (
                 <Card key={project.id} className="overflow-hidden shadow-lg border-0 bg-white">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-lg font-semibold text-gray-900">{project.name}</CardTitle>
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-lg font-semibold text-gray-900">{project.name}</CardTitle>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewDetails(project)}
+                        className="flex items-center gap-2"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Details
+                      </Button>
+                    </div>
                     <div className="flex items-center justify-between text-sm text-gray-600">
                       <div className="flex items-center">
                         <DollarSign className="w-4 h-4 mr-1" />
@@ -258,6 +284,13 @@ const UserProjects = () => {
           </div>
         </div>
       </div>
+
+      {/* Project Details Modal */}
+      <ProjectDetailsModal
+        project={selectedProject}
+        open={detailsModalOpen}
+        onOpenChange={setDetailsModalOpen}
+      />
     </div>
   );
 };
