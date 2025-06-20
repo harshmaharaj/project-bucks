@@ -37,52 +37,75 @@ const EarningsDonutChart = ({ projects }: EarningsDonutChartProps) => {
 
   return (
     <div className="bg-white rounded-lg p-4 shadow-sm border">
-      <div className="text-center mb-4">
+      {/* Header Row */}
+      <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Total Earnings</h3>
         <p className="text-2xl font-bold text-blue-600">
           {currency} {totalEarnings.toFixed(2)}
         </p>
       </div>
       
+      {/* Chart and Legend Row */}
       {chartData.length > 0 ? (
-        <ChartContainer
-          config={chartConfig}
-          className="h-48 w-full"
-        >
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              innerRadius={40}
-              outerRadius={80}
-              paddingAngle={2}
-              dataKey="value"
+        <div className="flex items-center gap-6">
+          {/* Donut Chart - Left Side */}
+          <div className="flex-shrink-0">
+            <ChartContainer
+              config={chartConfig}
+              className="h-32 w-32"
             >
-              {chartData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
-              ))}
-            </Pie>
-            <ChartTooltip
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  const data = payload[0];
-                  return (
-                    <div className="bg-white p-2 border rounded shadow-lg">
-                      <p className="font-medium">{data.name}</p>
-                      <p className="text-blue-600">
-                        {currency} {Number(data.value).toFixed(2)}
-                      </p>
-                    </div>
-                  );
-                }
-                return null;
-              }}
-            />
-          </PieChart>
-        </ChartContainer>
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={25}
+                  outerRadius={50}
+                  paddingAngle={2}
+                  dataKey="value"
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <ChartTooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0];
+                      return (
+                        <div className="bg-white p-2 border rounded shadow-lg">
+                          <p className="font-medium">{data.name}</p>
+                          <p className="text-blue-600">
+                            {currency} {Number(data.value).toFixed(2)}
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </PieChart>
+            </ChartContainer>
+          </div>
+          
+          {/* Legend - Right Side */}
+          <div className="flex-1 space-y-2">
+            {chartData.map((entry, index) => (
+              <div key={index} className="flex items-center gap-2 text-sm">
+                <div 
+                  className="w-3 h-3 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: entry.fill }}
+                />
+                <span className="flex-1 truncate text-gray-700">{entry.name}</span>
+                <span className="font-medium text-gray-900">
+                  {currency} {entry.value.toFixed(2)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
-        <div className="h-48 flex items-center justify-center text-gray-500">
+        <div className="h-32 flex items-center justify-center text-gray-500">
           <p>No earnings data available</p>
         </div>
       )}
