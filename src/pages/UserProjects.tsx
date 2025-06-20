@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Clock, DollarSign, User, Crown } from 'lucide-react';
@@ -52,20 +53,28 @@ const UserProjects = () => {
     
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // First fetch projects
+      const { data: projectsData, error: projectsError } = await supabase
         .from('projects')
-        .select(`
-          *,
-          time_sessions!fk_time_sessions_project_id(*)
-        `)
+        .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (projectsError) throw projectsError;
 
-      const projectsWithSessions = data?.map((project: any) => ({
+      // Then fetch time sessions separately to avoid relationship ambiguity
+      const { data: sessionsData, error: sessionsError } = await supabase
+        .from('time_sessions')
+        .select('*')
+        .in('project_id', projectsData?.map(p => p.id) || []);
+
+      if (sessionsError) throw sessionsError;
+
+      // Combine the data
+      const projectsWithSessions = projectsData?.map((project: any) => ({
         ...project,
-        sessions: project.time_sessions || []
+        sessions: sessionsData?.filter(session => session.project_id === project.id) || []
       })) || [];
 
       setProjects(projectsWithSessions);
