@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LogOut, User, Crown, Users } from 'lucide-react';
+import { LogOut, User, Crown, Users, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -14,8 +14,13 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import ProjectForm from '@/components/ProjectForm';
 
-const Navbar = () => {
+interface NavbarProps {
+  onProjectCreated?: (project: any) => void;
+}
+
+const Navbar = ({ onProjectCreated }: NavbarProps) => {
   const { user, userRole, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -49,16 +54,10 @@ const Navbar = () => {
     <div className="bg-white shadow-sm border-b px-4 py-3">
       <div className="max-w-md mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-1">
-            {userRole === 'super_admin' ? (
-              <Crown className="w-4 h-4 text-yellow-500" />
-            ) : (
-              <User className="w-4 h-4 text-gray-500" />
-            )}
-            <span className="text-sm font-medium text-gray-700">
-              {userRole === 'super_admin' ? 'Super Admin' : 'User'}
-            </span>
-          </div>
+          {/* Add Project Button - Only for regular users */}
+          {userRole !== 'super_admin' && onProjectCreated && (
+            <ProjectForm onProjectCreated={onProjectCreated} />
+          )}
           
           {/* Super Admin Navigation */}
           {userRole === 'super_admin' && (

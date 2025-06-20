@@ -89,9 +89,9 @@ const ProjectForm = ({ onProjectCreated }: ProjectFormProps) => {
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>
-        <Button className="w-full mb-6 h-14 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
-          <Plus className="w-6 h-6 mr-2" />
-          Add New Project
+        <Button variant="ghost" size="sm" className="flex items-center space-x-1 text-blue-600 hover:text-blue-700">
+          <Plus className="w-4 h-4" />
+          <span className="text-sm font-medium">Add Project</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="w-11/12 max-w-md mx-auto">

@@ -6,7 +6,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import AdminStats from '@/components/AdminStats';
-import ProjectForm from '@/components/ProjectForm';
 import ProjectCard from '@/components/ProjectCard';
 import PullToRefresh from '@/components/PullToRefresh';
 import EarningsDonutChart from '@/components/EarningsDonutChart';
@@ -66,7 +65,7 @@ const Index = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Navbar />
+        <Navbar onProjectCreated={addProject} />
         <div className="flex items-center justify-center min-h-[50vh]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -84,7 +83,7 @@ const Index = () => {
         pullDistance={pullDistance} 
         threshold={80} 
       />
-      <Navbar />
+      <Navbar onProjectCreated={addProject} />
       
       <div className="p-4">
         <div className="max-w-md mx-auto">
@@ -109,11 +108,6 @@ const Index = () => {
           {/* Super Admin Stats */}
           {userRole === 'super_admin' && (
             <AdminStats totalUsers={allUsers.length} totalProjects={projects.length} />
-          )}
-
-          {/* Add Project Button - Only for regular users */}
-          {userRole !== 'super_admin' && (
-            <ProjectForm onProjectCreated={addProject} />
           )}
 
           {/* Projects List */}
