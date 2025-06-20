@@ -1,6 +1,7 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock, DollarSign } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -11,15 +12,25 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useProjects } from '@/hooks/useProjects';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import Navbar from '@/components/Navbar';
 import PullToRefresh from '@/components/PullToRefresh';
+import EditSessionModal from '@/components/EditSessionModal';
+import DeleteSessionModal from '@/components/DeleteSessionModal';
 
 const ProjectDetails = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { projects, loading, refetchProjects } = useProjects();
+  const [editingSession, setEditingSession] = useState(null);
+  const [deletingSession, setDeletingSession] = useState(null);
 
   const project = projects.find(p => p.id === projectId);
 
@@ -95,6 +106,24 @@ const ProjectDetails = () => {
     const hours = session.duration / 3600;
     return total + (hours * project.hourly_rate);
   }, 0);
+
+  const handleEditSession = (session) => {
+    setEditingSession(session);
+  };
+
+  const handleDeleteSession = (session) => {
+    setDeletingSession(session);
+  };
+
+  const handleSessionUpdated = () => {
+    refetchProjects();
+    setEditingSession(null);
+  };
+
+  const handleSessionDeleted = () => {
+    refetchProjects();
+    setDeletingSession(null);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -180,6 +209,7 @@ const ProjectDetails = () => {
                         <TableHead>Stop Time</TableHead>
                         <TableHead>Hours</TableHead>
                         <TableHead>Earning</TableHead>
+                        <TableHead className="w-12"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -200,6 +230,31 @@ const ProjectDetails = () => {
                           <TableCell className="flex items-center gap-1">
                             {project.rate_currency} {calculateSessionEarning(session.duration)}
                           </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="bg-white">
+                                <DropdownMenuItem
+                                  onClick={() => handleEditSession(session)}
+                                  className="flex items-center gap-2 cursor-pointer"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                  Edit Session
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteSession(session)}
+                                  className="flex items-center gap-2 cursor-pointer text-red-600"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  Delete Session
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -210,6 +265,26 @@ const ProjectDetails = () => {
           </Card>
         </div>
       </div>
+
+      {editingSession && (
+        <EditSessionModal
+          session={editingSession}
+          project={project}
+          open={!!editingSession}
+          onOpenChange={(open) => !open && setEditingSession(null)}
+          onSessionUpdated={handleSessionUpdated}
+        />
+      )}
+
+      {deletingSession && (
+        <DeleteSessionModal
+          session={deletingSession}
+          project={project}
+          open={!!deletingSession}
+          onOpenChange={(open) => !open && setDeletingSession(null)}
+          onSessionDeleted={handleSessionDeleted}
+        />
+      )}
     </div>
   );
 };
