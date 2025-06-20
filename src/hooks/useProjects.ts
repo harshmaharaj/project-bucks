@@ -32,7 +32,7 @@ export const useProjects = () => {
         .from('projects')
         .select(`
           *,
-          time_sessions(*)
+          time_sessions!fk_time_sessions_project_id(*)
         `)
         .order('created_at', { ascending: false });
 
