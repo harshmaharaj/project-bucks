@@ -18,9 +18,11 @@ import ProjectForm from '@/components/ProjectForm';
 
 interface NavbarProps {
   onProjectCreated?: (project: any) => void;
+  showBackButton?: boolean;
+  onBackClick?: () => void;
 }
 
-const Navbar = ({ onProjectCreated }: NavbarProps) => {
+const Navbar = ({ onProjectCreated, showBackButton, onBackClick }: NavbarProps) => {
   const { user, userRole, signOut } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -54,6 +56,17 @@ const Navbar = ({ onProjectCreated }: NavbarProps) => {
     <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b px-4 py-3">
       <div className="max-w-md mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-4">
+          {/* Back Button */}
+          {showBackButton && (
+            <Button
+              onClick={onBackClick}
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+            >
+              ← Back to Projects
+            </Button>
+          )}
           {/* Add Project Button - Only for regular users */}
           {userRole !== 'super_admin' && onProjectCreated && (
             <ProjectForm onProjectCreated={onProjectCreated} />

@@ -189,16 +189,12 @@ const ProjectDetails = () => {
   };
   return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <PullToRefresh isRefreshing={isRefreshing} pullDistance={pullDistance} threshold={80} />
-      <Navbar />
+      <Navbar showBackButton={true} onBackClick={() => navigate('/')} />
       
       <div className="p-4 pt-20">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-6">
-            <Button onClick={() => navigate('/')} variant="ghost" className="mb-4 self-start px-0 py-px mx-0 my-0">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Projects
-            </Button>
             
             <div className="mb-4">
               <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
