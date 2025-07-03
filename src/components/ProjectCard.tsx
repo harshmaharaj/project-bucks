@@ -186,6 +186,7 @@ const ProjectCard = ({
                   onSlideComplete={() => onStopTimer(project.id)}
                   text="Slide to stop Timer"
                   variant="stop"
+                  isActive={true}
                   className="w-full"
                 />
               ) : (
@@ -193,6 +194,7 @@ const ProjectCard = ({
                   onSlideComplete={() => onStartTimer(project.id)}
                   text="Slide to start Timer"
                   variant="start"
+                  isActive={false}
                   className="w-full"
                 />
               )}

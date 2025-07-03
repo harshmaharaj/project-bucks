@@ -8,6 +8,7 @@ interface SliderButtonProps {
   variant?: 'start' | 'stop';
   disabled?: boolean;
   className?: string;
+  isActive?: boolean; // New prop to track if timer is running
 }
 
 const SliderButton = ({ 
@@ -15,7 +16,8 @@ const SliderButton = ({
   text, 
   variant = 'start', 
   disabled = false,
-  className 
+  className,
+  isActive = false
 }: SliderButtonProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [sliderPosition, setSliderPosition] = useState(0);
@@ -26,6 +28,15 @@ const SliderButton = ({
 
   const maxPosition = 200; // Approximate width for completion
   const completionThreshold = 0.85; // 85% of the way
+  
+  // Initialize position based on timer state
+  React.useEffect(() => {
+    if (variant === 'stop' && isActive) {
+      setSliderPosition(maxPosition);
+    } else if (variant === 'start' && !isActive) {
+      setSliderPosition(0);
+    }
+  }, [variant, isActive, maxPosition]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (disabled || isCompleted) return;
@@ -44,11 +55,29 @@ const SliderButton = ({
       if (!isDragging || !sliderRef.current) return;
 
       const rect = sliderRef.current.getBoundingClientRect();
-      const newPosition = Math.max(0, Math.min(clientX - rect.left - 24, maxPosition));
+      let newPosition;
+      
+      if (variant === 'start') {
+        // For start: slide from left to right
+        newPosition = Math.max(0, Math.min(clientX - rect.left - 24, maxPosition));
+      } else {
+        // For stop: slide from right to left
+        newPosition = Math.max(0, Math.min(clientX - rect.left - 24, maxPosition));
+      }
+      
       setSliderPosition(newPosition);
 
-      // Check if we've reached the completion threshold
-      if (newPosition >= maxPosition * completionThreshold && !isCompleted) {
+      // Check completion based on variant
+      let completed = false;
+      if (variant === 'start') {
+        // Start timer: slide right to complete
+        completed = newPosition >= maxPosition * completionThreshold;
+      } else {
+        // Stop timer: slide left to complete (position should be near 0)
+        completed = newPosition <= maxPosition * (1 - completionThreshold);
+      }
+
+      if (completed && !isCompleted) {
         setIsCompleted(true);
         setIsDragging(false);
         
@@ -57,7 +86,11 @@ const SliderButton = ({
         
         // Reset after a short delay
         setTimeout(() => {
-          setSliderPosition(0);
+          if (variant === 'start') {
+            setSliderPosition(maxPosition); // Stay on right for start
+          } else {
+            setSliderPosition(0); // Go to left for stop
+          }
           setIsCompleted(false);
         }, 300);
       }
@@ -75,13 +108,15 @@ const SliderButton = ({
 
     const handleEnd = () => {
       if (isDragging && !isCompleted) {
-        // Animate back to start if not completed
+        // Animate back to original position if not completed
+        const targetPosition = variant === 'stop' && isActive ? maxPosition : 0;
         animationRef.current = requestAnimationFrame(() => {
           setSliderPosition(prev => {
-            const newPos = prev * 0.9;
-            if (newPos < 2) {
+            const diff = targetPosition - prev;
+            const newPos = prev + diff * 0.2;
+            if (Math.abs(diff) < 2) {
               setIsDragging(false);
-              return 0;
+              return targetPosition;
             }
             animationRef.current = requestAnimationFrame(() => setSliderPosition(newPos));
             return newPos;
@@ -111,7 +146,7 @@ const SliderButton = ({
   }, [isDragging, isCompleted, onSlideComplete]);
 
   const progressPercentage = (sliderPosition / maxPosition) * 100;
-  const isNearCompletion = progressPercentage > 70;
+  const isNearCompletion = variant === 'start' ? progressPercentage > 70 : progressPercentage < 30;
 
   return (
     <div 
