@@ -211,7 +211,7 @@ const ProjectDetails = () => {
           {/* Project Summary with Tabs */}
           <Card className="mb-8">
             
-            <CardContent className="p-2 rounded-2xl">
+            <CardContent className="p-2 rounded-3xl">
               <Tabs defaultValue="summary" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="summary" className="flex items-center gap-2">
