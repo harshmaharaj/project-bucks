@@ -20,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { formatTime, calculateEarnings, getWeeklyProgress } from '@/utils/timeUtils';
+import { formatTime, calculateEarnings, getWeeklyProgress, getWeeklyTime } from '@/utils/timeUtils';
 
 interface Project {
   id: string;
@@ -86,7 +86,7 @@ const ProjectCard = ({
 
   const currentSessionTime = getCurrentSessionTime();
   const totalTimeWithSession = project.total_time + currentSessionTime;
-  const weeklyProgress = getWeeklyProgress(totalTimeWithSession, project.committed_weekly_hours);
+  const weeklyProgress = getWeeklyProgress(project.sessions || [], project.committed_weekly_hours, currentSessionTime);
 
   const canControlTimer = userRole !== 'super_admin' && project.user_id === currentUserId;
   const canManageProject = userRole === 'super_admin' || project.user_id === currentUserId;
@@ -161,7 +161,7 @@ const ProjectCard = ({
           <div className="mt-2">
             <div className="flex justify-between text-xs text-gray-500 mb-1">
               <span>Weekly Progress</span>
-              <span>{(totalTimeWithSession / 3600).toFixed(1)}h / {project.committed_weekly_hours}h</span>
+              <span>{(getWeeklyTime(project.sessions || [], currentSessionTime) / 3600).toFixed(1)}h / {project.committed_weekly_hours}h</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div

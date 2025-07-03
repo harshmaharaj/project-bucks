@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import ProjectDetailsModal from '@/components/ProjectDetailsModal';
+import { getWeeklyProgress as calculateWeeklyProgress, getWeeklyTime } from '@/utils/timeUtils';
 
 interface Project {
   id: string;
@@ -143,10 +144,9 @@ const UserProjects = () => {
     return Math.floor((Date.now() - project.start_time) / 1000);
   };
 
-  const getWeeklyProgress = (project: Project) => {
-    const hours = project.total_time / 3600;
-    const percentage = (hours / project.committed_weekly_hours) * 100;
-    return Math.min(percentage, 100);
+  const getProjectWeeklyProgress = (project: Project) => {
+    const currentSessionTime = getCurrentSessionTime(project);
+    return calculateWeeklyProgress(project.sessions || [], project.committed_weekly_hours, currentSessionTime);
   };
 
   const handleViewDetails = (project: Project) => {
@@ -242,12 +242,12 @@ const UserProjects = () => {
                     <div className="mt-2">
                       <div className="flex justify-between text-xs text-gray-500 mb-1">
                         <span>Weekly Progress</span>
-                        <span>{((project.total_time + getCurrentSessionTime(project)) / 3600).toFixed(1)}h / {project.committed_weekly_hours}h</span>
+                        <span>{(getWeeklyTime(project.sessions || [], getCurrentSessionTime(project)) / 3600).toFixed(1)}h / {project.committed_weekly_hours}h</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
                           className="bg-gradient-to-r from-blue-500 to-indigo-500 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${getWeeklyProgress(project)}%` }}
+                          style={{ width: `${getProjectWeeklyProgress(project)}%` }}
                         ></div>
                       </div>
                     </div>
