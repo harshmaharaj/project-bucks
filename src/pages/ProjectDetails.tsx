@@ -216,7 +216,7 @@ const ProjectDetails = () => {
           {/* Project Summary with Tabs */}
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle>Project Overview</CardTitle>
+              <CardTitle className="text-sm">Project Overview</CardTitle>
             </CardHeader>
             <CardContent className="p-2">
               <Tabs defaultValue="summary" className="w-full">
@@ -345,8 +345,8 @@ const ProjectDetails = () => {
           {/* Time Sessions Table */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Calendar className="w-3 h-3" />
                 Time Sessions
               </CardTitle>
             </CardHeader>
