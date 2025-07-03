@@ -337,7 +337,7 @@ const ProjectDetails = () => {
 
           {/* Time Sessions Table */}
           <Card>
-            <CardHeader>
+            <CardHeader className="py-[12px]">
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Calendar className="w-3 h-3" />
                 Time Sessions
