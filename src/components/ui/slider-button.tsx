@@ -157,7 +157,7 @@ const SliderButton = ({
       </div>
       
       {/* Slider Handle */}
-      <div ref={handleRef} className={cn("absolute m-1 w-14 bg-white rounded-md shadow-lg", "flex items-center justify-center cursor-grab active:cursor-grabbing", "transition-all duration-200", isDragging && "shadow-xl scale-105", isCompleted && "bg-green-100")} style={{
+      <div ref={handleRef} className={cn("absolute top-1 left-1 bottom-1 w-14 bg-white rounded-md shadow-lg", "flex items-center justify-center cursor-grab active:cursor-grabbing", "transition-all duration-200", isDragging && "shadow-xl scale-105", isCompleted && "bg-green-100")} style={{
       transform: `translateX(${sliderPosition}px)`,
       transition: isDragging ? 'none' : 'transform 0.3s ease-out'
     }} onMouseDown={handleMouseDown} onTouchStart={handleTouchStart}>
