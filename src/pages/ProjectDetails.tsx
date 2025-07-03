@@ -343,7 +343,7 @@ const ProjectDetails = () => {
                 Time Sessions
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="mx-0 px-[8px]">
               {sortedSessions.length === 0 ? <div className="text-center py-12 text-gray-500">
                   <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <p>No completed sessions yet. Start tracking time to see session details here.</p>
