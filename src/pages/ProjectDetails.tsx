@@ -351,30 +351,32 @@ const ProjectDetails = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Start Time</TableHead>
-                        <TableHead>Stop Time</TableHead>
+                        <TableHead>Date & Time</TableHead>
                         <TableHead>Hours</TableHead>
-                        <TableHead>Earning</TableHead>
                         <TableHead className="w-12"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {sortedSessions.map(session => <TableRow key={session.id}>
                           <TableCell className="font-medium">
-                            {formatDate(session.start_time)}
+                            <div className="space-y-1">
+                              <div className="text-sm font-semibold">
+                                {formatDate(session.start_time)}
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {formatTimeOnly(session.start_time)} - {session.end_time ? formatTimeOnly(session.end_time) : 'Running...'}
+                              </div>
+                            </div>
                           </TableCell>
                           <TableCell>
-                            {formatTimeOnly(session.start_time)}
-                          </TableCell>
-                          <TableCell>
-                            {session.end_time ? formatTimeOnly(session.end_time) : 'Running...'}
-                          </TableCell>
-                          <TableCell>
-                            {calculateSessionHours(session.duration)}h
-                          </TableCell>
-                          <TableCell className="flex items-center gap-1">
-                            {project.rate_currency} {calculateSessionEarning(session.duration)}
+                            <div className="space-y-1">
+                              <div className="text-sm font-semibold">
+                                {calculateSessionHours(session.duration)}hrs
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {project.rate_currency} {calculateSessionEarning(session.duration)}
+                              </div>
+                            </div>
                           </TableCell>
                           <TableCell>
                             <DropdownMenu>
