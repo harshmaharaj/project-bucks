@@ -36,6 +36,45 @@ const ProjectDetails = () => {
 
   const project = projects.find(p => p.id === projectId);
 
+  // Filter out sessions that don't have an end_time (currently running sessions)
+  const completedSessions = project?.sessions.filter(session => session.end_time) || [];
+
+  // Sort sessions by start time (most recent first)  
+  const sortedSessions = completedSessions.sort((a, b) => b.start_time - a.start_time);
+
+  const totalEarnings = sortedSessions.reduce((total, session) => {
+    const hours = session.duration / 3600;
+    return total + (hours * (project?.hourly_rate || 0));
+  }, 0);
+
+  // Prepare daily analytics data
+  const dailyAnalytics = useMemo(() => {
+    if (!project) return [];
+    
+    const dailyData: { [key: string]: number } = {};
+    
+    completedSessions.forEach(session => {
+      const date = new Date(session.start_time).toLocaleDateString();
+      const hours = session.duration / 3600;
+      
+      if (dailyData[date]) {
+        dailyData[date] += hours;
+      } else {
+        dailyData[date] = hours;
+      }
+    });
+
+    // Convert to array and sort by date
+    return Object.entries(dailyData)
+      .map(([date, hours]) => ({
+        date,
+        hours: Number(hours.toFixed(2)),
+        earnings: Number((hours * project.hourly_rate).toFixed(2))
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(-14); // Show last 14 days
+  }, [completedSessions, project?.hourly_rate]);
+
   // Pull to refresh functionality
   const { isRefreshing, pullDistance } = usePullToRefresh({
     onRefresh: refetchProjects,
@@ -97,43 +136,6 @@ const ProjectDetails = () => {
     const hours = duration / 3600;
     return (hours * project.hourly_rate).toFixed(2);
   };
-
-  // Filter out sessions that don't have an end_time (currently running sessions)
-  const completedSessions = project.sessions.filter(session => session.end_time);
-
-  // Sort sessions by start time (most recent first)
-  const sortedSessions = completedSessions.sort((a, b) => b.start_time - a.start_time);
-
-  const totalEarnings = sortedSessions.reduce((total, session) => {
-    const hours = session.duration / 3600;
-    return total + (hours * project.hourly_rate);
-  }, 0);
-
-  // Prepare daily analytics data
-  const dailyAnalytics = useMemo(() => {
-    const dailyData: { [key: string]: number } = {};
-    
-    completedSessions.forEach(session => {
-      const date = new Date(session.start_time).toLocaleDateString();
-      const hours = session.duration / 3600;
-      
-      if (dailyData[date]) {
-        dailyData[date] += hours;
-      } else {
-        dailyData[date] = hours;
-      }
-    });
-
-    // Convert to array and sort by date
-    return Object.entries(dailyData)
-      .map(([date, hours]) => ({
-        date,
-        hours: Number(hours.toFixed(2)),
-        earnings: Number((hours * project.hourly_rate).toFixed(2))
-      }))
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(-14); // Show last 14 days
-  }, [completedSessions, project.hourly_rate]);
 
   const handleEditSession = (session) => {
     console.log('Opening edit modal for session:', session.id);
