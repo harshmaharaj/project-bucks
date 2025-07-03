@@ -195,7 +195,7 @@ const ProjectDetails = () => {
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-6">
-            <Button onClick={() => navigate('/')} variant="ghost" className="mb-4">
+            <Button onClick={() => navigate('/')} variant="ghost" className="mb-4 self-start">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Projects
             </Button>
