@@ -200,8 +200,7 @@ const ProjectDetails = () => {
               Back to Projects
             </Button>
             
-            <div className="flex items-center gap-2 mb-4">
-              <Clock className="w-6 h-6 text-blue-600" />
+            <div className="mb-4">
               <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
             </div>
             

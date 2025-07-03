@@ -71,8 +71,7 @@ const ProjectDetailsModal = ({ project, open, onOpenChange }: ProjectDetailsModa
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Clock className="w-5 h-5" />
+          <DialogTitle className="text-xl">
             {project.name} - Time Tracking Details
           </DialogTitle>
         </DialogHeader>
