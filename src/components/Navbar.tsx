@@ -51,7 +51,7 @@ const Navbar = ({ onProjectCreated }: NavbarProps) => {
   };
 
   return (
-    <div className="bg-white shadow-sm border-b px-4 py-3">
+    <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b px-4 py-3">
       <div className="max-w-md mx-auto flex items-center justify-between">
         <div className="flex items-center space-x-4">
           {/* Add Project Button - Only for regular users */}

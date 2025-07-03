@@ -177,7 +177,7 @@ const UserProjects = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Navbar />
       
-      <div className="p-4">
+      <div className="p-4 pt-20">
         <div className="max-w-md mx-auto">
           {/* Header with Back Button */}
           <div className="mb-6">

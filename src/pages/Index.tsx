@@ -85,7 +85,7 @@ const Index = () => {
       />
       <Navbar onProjectCreated={addProject} />
       
-      <div className="p-4">
+      <div className="p-4 pt-20">
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
