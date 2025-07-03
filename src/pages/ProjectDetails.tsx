@@ -191,7 +191,7 @@ const ProjectDetails = () => {
       <PullToRefresh isRefreshing={isRefreshing} pullDistance={pullDistance} threshold={80} />
       <Navbar />
       
-      <div className="p-4">
+      <div className="p-4 pt-20">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-6">
