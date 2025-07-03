@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SliderButtonProps {
@@ -38,6 +38,13 @@ const SliderButton = ({
     }
   }, [variant, isActive, maxPosition]);
 
+  // Calculate the actual max position based on container width
+  const getMaxPosition = () => {
+    if (!sliderRef.current) return maxPosition;
+    const containerWidth = sliderRef.current.offsetWidth;
+    return containerWidth - 56; // 56px for handle width (w-14 = 56px)
+  };
+
   const handleMouseDown = (e: React.MouseEvent) => {
     if (disabled || isCompleted) return;
     setIsDragging(true);
@@ -55,14 +62,15 @@ const SliderButton = ({
       if (!isDragging || !sliderRef.current) return;
 
       const rect = sliderRef.current.getBoundingClientRect();
+      const currentMaxPosition = getMaxPosition();
       let newPosition;
       
       if (variant === 'start') {
         // For start: slide from left to right
-        newPosition = Math.max(0, Math.min(clientX - rect.left - 24, maxPosition));
+        newPosition = Math.max(0, Math.min(clientX - rect.left - 28, currentMaxPosition));
       } else {
         // For stop: slide from right to left
-        newPosition = Math.max(0, Math.min(clientX - rect.left - 24, maxPosition));
+        newPosition = Math.max(0, Math.min(clientX - rect.left - 28, currentMaxPosition));
       }
       
       setSliderPosition(newPosition);
@@ -71,10 +79,10 @@ const SliderButton = ({
       let completed = false;
       if (variant === 'start') {
         // Start timer: slide right to complete
-        completed = newPosition >= maxPosition * completionThreshold;
+        completed = newPosition >= currentMaxPosition * completionThreshold;
       } else {
         // Stop timer: slide left to complete (position should be near 0)
-        completed = newPosition <= maxPosition * (1 - completionThreshold);
+        completed = newPosition <= currentMaxPosition * (1 - completionThreshold);
       }
 
       if (completed && !isCompleted) {
@@ -87,7 +95,7 @@ const SliderButton = ({
         // Reset after a short delay
         setTimeout(() => {
           if (variant === 'start') {
-            setSliderPosition(maxPosition); // Stay on right for start
+            setSliderPosition(getMaxPosition()); // Stay on right for start
           } else {
             setSliderPosition(0); // Go to left for stop
           }
@@ -109,7 +117,7 @@ const SliderButton = ({
     const handleEnd = () => {
       if (isDragging && !isCompleted) {
         // Animate back to original position if not completed
-        const targetPosition = variant === 'stop' && isActive ? maxPosition : 0;
+        const targetPosition = variant === 'stop' && isActive ? getMaxPosition() : 0;
         animationRef.current = requestAnimationFrame(() => {
           setSliderPosition(prev => {
             const diff = targetPosition - prev;
@@ -145,7 +153,8 @@ const SliderButton = ({
     };
   }, [isDragging, isCompleted, onSlideComplete]);
 
-  const progressPercentage = (sliderPosition / maxPosition) * 100;
+  const currentMaxPosition = getMaxPosition();
+  const progressPercentage = (sliderPosition / currentMaxPosition) * 100;
   const isNearCompletion = variant === 'start' ? progressPercentage > 70 : progressPercentage < 30;
 
   return (
@@ -191,7 +200,7 @@ const SliderButton = ({
       <div
         ref={handleRef}
         className={cn(
-          "absolute top-1 left-1 bottom-1 w-12 bg-white rounded-md shadow-lg",
+          "absolute top-1 left-1 bottom-1 w-14 bg-white rounded-md shadow-lg",
           "flex items-center justify-center cursor-grab active:cursor-grabbing",
           "transition-all duration-200",
           isDragging && "shadow-xl scale-105",
@@ -204,14 +213,25 @@ const SliderButton = ({
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
       >
-        <ChevronRight 
-          className={cn(
-            "w-5 h-5 transition-all duration-200",
-            variant === 'start' ? "text-green-600" : "text-red-600",
-            isDragging && "scale-110",
-            isCompleted && "text-green-700"
-          )} 
-        />
+        {variant === 'start' ? (
+          <ChevronRight 
+            className={cn(
+              "w-5 h-5 transition-all duration-200",
+              "text-green-600",
+              isDragging && "scale-110",
+              isCompleted && "text-green-700"
+            )} 
+          />
+        ) : (
+          <ChevronLeft 
+            className={cn(
+              "w-5 h-5 transition-all duration-200",
+              "text-red-600",
+              isDragging && "scale-110",
+              isCompleted && "text-red-700"
+            )} 
+          />
+        )}
       </div>
       
       {/* Completion Indicator */}
