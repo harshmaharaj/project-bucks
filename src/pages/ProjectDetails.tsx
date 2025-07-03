@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useProjects } from '@/hooks/useProjects';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import Navbar from '@/components/Navbar';
@@ -54,25 +54,42 @@ const ProjectDetails = () => {
     const dailyData: { [key: string]: number } = {};
     
     completedSessions.forEach(session => {
-      const date = new Date(session.start_time).toLocaleDateString();
+      const date = new Date(session.start_time);
+      const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD format
       const hours = session.duration / 3600;
       
-      if (dailyData[date]) {
-        dailyData[date] += hours;
+      if (dailyData[dateKey]) {
+        dailyData[dateKey] += hours;
       } else {
-        dailyData[date] = hours;
+        dailyData[dateKey] = hours;
       }
     });
 
-    // Convert to array and sort by date
-    return Object.entries(dailyData)
-      .map(([date, hours]) => ({
-        date,
-        hours: Number(hours.toFixed(2)),
-        earnings: Number((hours * project.hourly_rate).toFixed(2))
-      }))
+    // Convert to array and sort by date, then take last 7 days
+    const sortedData = Object.entries(dailyData)
+      .map(([dateKey, hours]) => {
+        const date = new Date(dateKey);
+        const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+        const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+        
+        return {
+          date: dateKey,
+          day: dayNames[date.getDay()],
+          displayDate: `${monthNames[date.getMonth()]} ${date.getDate()}`,
+          hours: Number(hours.toFixed(2)),
+          earnings: Number((hours * project.hourly_rate).toFixed(2))
+        };
+      })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(-14); // Show last 14 days
+      .slice(-7); // Show last 7 days
+
+    // Find the highest earning day
+    const maxEarnings = Math.max(...sortedData.map(d => d.earnings));
+    
+    return sortedData.map(data => ({
+      ...data,
+      isHighest: data.earnings === maxEarnings && data.earnings > 0
+    }));
   }, [completedSessions, project?.hourly_rate]);
 
   // Pull to refresh functionality
@@ -232,10 +249,10 @@ const ProjectDetails = () => {
                 </TabsContent>
                 
                 <TabsContent value="analytics" className="mt-6">
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div className="text-center">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Daily Work Hours (Last 14 Days)</h3>
-                      <p className="text-sm text-gray-600">Track your daily productivity and work patterns</p>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Weekly Earnings Overview</h3>
+                      <p className="text-sm text-gray-600">Track your daily earnings and work patterns</p>
                     </div>
                     
                     {dailyAnalytics.length === 0 ? (
@@ -244,50 +261,72 @@ const ProjectDetails = () => {
                         <p>No data available for analytics. Complete some work sessions to see your daily patterns.</p>
                       </div>
                     ) : (
-                      <div className="h-80">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={dailyAnalytics}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis 
-                              dataKey="date" 
-                              tick={{ fontSize: 12 }}
-                              angle={-45}
-                              textAnchor="end"
-                              height={60}
-                            />
-                            <YAxis 
-                              tick={{ fontSize: 12 }}
-                              label={{ value: 'Hours', angle: -90, position: 'insideLeft' }}
-                            />
-                            <Tooltip 
-                              formatter={(value, name) => {
-                                if (name === 'hours') return [`${value}h`, 'Hours Worked'];
-                                return [`${project.rate_currency} ${value}`, 'Earnings'];
-                              }}
-                              labelFormatter={(label) => `Date: ${label}`}
-                            />
-                            <Bar 
-                              dataKey="hours" 
-                              fill="hsl(var(--primary))" 
-                              radius={[4, 4, 0, 0]}
-                            />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-                    
-                    {dailyAnalytics.length > 0 && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                        <div className="text-center p-4 bg-indigo-50 rounded-lg">
-                          <div className="text-sm text-gray-600 mb-1">Average Daily Hours</div>
-                          <div className="text-2xl font-bold text-indigo-600">
-                            {(dailyAnalytics.reduce((sum, day) => sum + day.hours, 0) / dailyAnalytics.length).toFixed(1)}h
-                          </div>
+                      <div className="bg-gray-50 rounded-lg p-6">
+                        <div className="h-80 relative">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart 
+                              data={dailyAnalytics}
+                              margin={{ top: 40, right: 30, left: 20, bottom: 20 }}
+                            >
+                              <XAxis 
+                                dataKey="day" 
+                                axisLine={false}
+                                tickLine={false}
+                                tick={{ 
+                                  fontSize: 14, 
+                                  fill: '#6B7280',
+                                  fontWeight: 500
+                                }}
+                              />
+                              <YAxis hide />
+                              <Tooltip 
+                                cursor={false}
+                                content={({ active, payload, label }) => {
+                                  if (active && payload && payload.length) {
+                                    const data = payload[0].payload;
+                                    return (
+                                      <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
+                                        <div className="text-xs text-gray-500 mb-1">{data.displayDate}</div>
+                                        <div className="text-lg font-bold text-gray-900">
+                                          {project.rate_currency} {data.earnings.toFixed(2)}
+                                        </div>
+                                        <div className="text-xs text-gray-600">
+                                          {data.hours}h worked
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                  return null;
+                                }}
+                              />
+                              <Bar 
+                                dataKey="earnings" 
+                                radius={[8, 8, 0, 0]}
+                              >
+                                {dailyAnalytics.map((entry, index) => (
+                                  <Cell 
+                                    key={`cell-${index}`}
+                                    fill={entry.isHighest ? '#059669' : '#A7F3D0'}
+                                  />
+                                ))}
+                              </Bar>
+                            </BarChart>
+                          </ResponsiveContainer>
                         </div>
-                        <div className="text-center p-4 bg-orange-50 rounded-lg">
-                          <div className="text-sm text-gray-600 mb-1">Most Productive Day</div>
-                          <div className="text-2xl font-bold text-orange-600">
-                            {dailyAnalytics.reduce((max, day) => day.hours > max.hours ? day : max, dailyAnalytics[0])?.hours.toFixed(1)}h
+                        
+                        {/* Stats below chart */}
+                        <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-200">
+                          <div className="text-center">
+                            <div className="text-xs text-gray-500 mb-1">Total This Week</div>
+                            <div className="text-xl font-bold text-gray-900">
+                              {project.rate_currency} {dailyAnalytics.reduce((sum, day) => sum + day.earnings, 0).toFixed(2)}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-gray-500 mb-1">Best Day</div>
+                            <div className="text-xl font-bold text-green-600">
+                              {project.rate_currency} {Math.max(...dailyAnalytics.map(d => d.earnings)).toFixed(2)}
+                            </div>
                           </div>
                         </div>
                       </div>
