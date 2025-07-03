@@ -265,7 +265,7 @@ const ProjectDetails = () => {
                         <div className="flex items-center justify-between mb-4">
                           <Button variant="outline" size="sm" onClick={() => setChartStartIndex(Math.max(0, chartStartIndex - 7))} disabled={!canGoLeft} className="flex items-center gap-2">
                             <ChevronLeft className="w-4 h-4" />
-                            Previous Week
+                            <span className="hidden sm:inline">Previous Week</span>
                           </Button>
                           
                           <div className="text-sm text-gray-600">
@@ -275,7 +275,7 @@ const ProjectDetails = () => {
                           </div>
                           
                           <Button variant="outline" size="sm" onClick={() => setChartStartIndex(Math.min(allYearData.length - 7, chartStartIndex + 7))} disabled={!canGoRight} className="flex items-center gap-2">
-                            Next Week
+                            <span className="hidden sm:inline">Next Week</span>
                             <ChevronRight className="w-4 h-4" />
                           </Button>
                         </div>
