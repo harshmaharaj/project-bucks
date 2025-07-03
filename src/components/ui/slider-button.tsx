@@ -39,7 +39,7 @@ const SliderButton = ({
   const getMaxPosition = () => {
     if (!sliderRef.current) return maxPosition;
     const containerWidth = sliderRef.current.offsetWidth;
-    return containerWidth - 62; // 56px for handle width (w-14) + 6px right margin
+    return containerWidth - 64; // 56px for handle width (w-14) + 8px right margin
   };
   const handleMouseDown = (e: React.MouseEvent) => {
     if (disabled || isCompleted) return;
