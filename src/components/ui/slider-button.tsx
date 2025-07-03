@@ -32,11 +32,11 @@ const SliderButton = ({
   // Initialize position based on timer state
   React.useEffect(() => {
     if (variant === 'stop' && isActive) {
-      setSliderPosition(maxPosition);
+      setSliderPosition(getMaxPosition());
     } else if (variant === 'start' && !isActive) {
       setSliderPosition(0);
     }
-  }, [variant, isActive, maxPosition]);
+  }, [variant, isActive]);
 
   // Calculate the actual max position based on container width
   const getMaxPosition = () => {
