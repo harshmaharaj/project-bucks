@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock, MoreVertical, Edit, Trash2, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MoreVertical, Edit, Trash2, BarChart3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -33,6 +33,7 @@ const ProjectDetails = () => {
   const { projects, loading, refetchProjects } = useProjects();
   const [editingSession, setEditingSession] = useState(null);
   const [deletingSession, setDeletingSession] = useState(null);
+  const [chartStartIndex, setChartStartIndex] = useState(0);
 
   const project = projects.find(p => p.id === projectId);
 
@@ -47,26 +48,36 @@ const ProjectDetails = () => {
     return total + (hours * (project?.hourly_rate || 0));
   }, 0);
 
-  // Prepare daily analytics data
-  const dailyAnalytics = useMemo(() => {
-    if (!project) return [];
+  // Prepare daily analytics data for the whole year
+  const { allYearData, currentWeekData } = useMemo(() => {
+    if (!project) return { allYearData: [], currentWeekData: [] };
+    
+    // Create a full year of dates (365 days)
+    const today = new Date();
+    const yearAgo = new Date(today);
+    yearAgo.setFullYear(today.getFullYear() - 1);
     
     const dailyData: { [key: string]: number } = {};
     
+    // Initialize all days in the year with 0 earnings
+    for (let d = new Date(yearAgo); d <= today; d.setDate(d.getDate() + 1)) {
+      const dateKey = d.toISOString().split('T')[0];
+      dailyData[dateKey] = 0;
+    }
+    
+    // Add actual session data
     completedSessions.forEach(session => {
       const date = new Date(session.start_time);
-      const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+      const dateKey = date.toISOString().split('T')[0];
       const hours = session.duration / 3600;
       
-      if (dailyData[dateKey]) {
+      if (dailyData.hasOwnProperty(dateKey)) {
         dailyData[dateKey] += hours;
-      } else {
-        dailyData[dateKey] = hours;
       }
     });
 
-    // Convert to array and sort by date, then take last 7 days
-    const sortedData = Object.entries(dailyData)
+    // Convert to array and sort by date
+    const allData = Object.entries(dailyData)
       .map(([dateKey, hours]) => {
         const date = new Date(dateKey);
         const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -80,17 +91,42 @@ const ProjectDetails = () => {
           earnings: Number((hours * project.hourly_rate).toFixed(2))
         };
       })
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-      .slice(-7); // Show last 7 days
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    // Find the highest earning day
-    const maxEarnings = Math.max(...sortedData.map(d => d.earnings));
+    // Get current week data (7 days starting from chartStartIndex)
+    const startIndex = Math.max(0, Math.min(chartStartIndex, allData.length - 7));
+    const weekData = allData.slice(startIndex, startIndex + 7);
     
-    return sortedData.map(data => ({
+    // Find the highest earning day in current week
+    const maxEarnings = Math.max(...weekData.map(d => d.earnings));
+    
+    const weekDataWithHighlight = weekData.map(data => ({
       ...data,
       isHighest: data.earnings === maxEarnings && data.earnings > 0
     }));
-  }, [completedSessions, project?.hourly_rate]);
+
+    return { 
+      allYearData: allData, 
+      currentWeekData: weekDataWithHighlight 
+    };
+  }, [completedSessions, project?.hourly_rate, chartStartIndex]);
+
+  // Initialize chart to show the most recent week with data
+  React.useEffect(() => {
+    if (allYearData.length > 0 && chartStartIndex === 0) {
+      // Find the last day with earnings
+      const lastDataIndex = allYearData.map(d => d.earnings).lastIndexOf(
+        Math.max(...allYearData.map(d => d.earnings))
+      );
+      if (lastDataIndex >= 0) {
+        const newStartIndex = Math.max(0, lastDataIndex - 6);
+        setChartStartIndex(newStartIndex);
+      }
+    }
+  }, [allYearData, chartStartIndex]);
+
+  const canGoLeft = chartStartIndex > 0;
+  const canGoRight = chartStartIndex < allYearData.length - 7;
 
   // Pull to refresh functionality
   const { isRefreshing, pullDistance } = usePullToRefresh({
@@ -255,18 +291,52 @@ const ProjectDetails = () => {
                       <p className="text-sm text-gray-600">Track your daily earnings and work patterns</p>
                     </div>
                     
-                    {dailyAnalytics.length === 0 ? (
+                    {currentWeekData.length === 0 ? (
                       <div className="text-center py-12 text-gray-500">
                         <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                         <p>No data available for analytics. Complete some work sessions to see your daily patterns.</p>
                       </div>
                     ) : (
                       <div className="bg-gray-50 rounded-lg p-6">
+                        {/* Navigation Controls */}
+                        <div className="flex items-center justify-between mb-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setChartStartIndex(Math.max(0, chartStartIndex - 7))}
+                            disabled={!canGoLeft}
+                            className="flex items-center gap-2"
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                            Previous Week
+                          </Button>
+                          
+                          <div className="text-sm text-gray-600">
+                            {currentWeekData.length > 0 && (
+                              <>
+                                {currentWeekData[0].displayDate} - {currentWeekData[currentWeekData.length - 1].displayDate}
+                              </>
+                            )}
+                          </div>
+                          
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setChartStartIndex(Math.min(allYearData.length - 7, chartStartIndex + 7))}
+                            disabled={!canGoRight}
+                            className="flex items-center gap-2"
+                          >
+                            Next Week
+                            <ChevronRight className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        
                         <div className="h-80 relative">
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart 
-                              data={dailyAnalytics}
+                              data={currentWeekData}
                               margin={{ top: 40, right: 30, left: 20, bottom: 20 }}
+                              barCategoryGap="20%"
                             >
                               <XAxis 
                                 dataKey="day" 
@@ -302,8 +372,9 @@ const ProjectDetails = () => {
                               <Bar 
                                 dataKey="earnings" 
                                 radius={[8, 8, 0, 0]}
+                                maxBarSize={40}
                               >
-                                {dailyAnalytics.map((entry, index) => (
+                                {currentWeekData.map((entry, index) => (
                                   <Cell 
                                     key={`cell-${index}`}
                                     fill={entry.isHighest ? '#059669' : '#A7F3D0'}
@@ -319,13 +390,13 @@ const ProjectDetails = () => {
                           <div className="text-center">
                             <div className="text-xs text-gray-500 mb-1">Total This Week</div>
                             <div className="text-xl font-bold text-gray-900">
-                              {project.rate_currency} {dailyAnalytics.reduce((sum, day) => sum + day.earnings, 0).toFixed(2)}
+                              {project.rate_currency} {currentWeekData.reduce((sum, day) => sum + day.earnings, 0).toFixed(2)}
                             </div>
                           </div>
                           <div className="text-center">
                             <div className="text-xs text-gray-500 mb-1">Best Day</div>
                             <div className="text-xl font-bold text-green-600">
-                              {project.rate_currency} {Math.max(...dailyAnalytics.map(d => d.earnings)).toFixed(2)}
+                              {project.rate_currency} {Math.max(...currentWeekData.map(d => d.earnings)).toFixed(2)}
                             </div>
                           </div>
                         </div>
