@@ -161,13 +161,14 @@ const SliderButton = ({
     <div 
       ref={sliderRef}
       className={cn(
-        "relative h-14 rounded-lg overflow-hidden cursor-pointer select-none",
+        "relative h-14 overflow-hidden cursor-pointer select-none",
         variant === 'start' 
           ? "bg-gradient-to-r from-green-500 to-green-600" 
           : "bg-gradient-to-r from-red-500 to-red-600",
         disabled && "opacity-50 cursor-not-allowed",
         className
       )}
+      style={{ borderRadius: '100px' }}
     >
       {/* Progress Background */}
       <div 
@@ -200,7 +201,7 @@ const SliderButton = ({
       <div
         ref={handleRef}
         className={cn(
-          "absolute top-1 left-1 bottom-1 w-14 bg-white rounded-md shadow-lg",
+          "absolute top-1 left-1 bottom-1 w-14 bg-white shadow-lg",
           "flex items-center justify-center cursor-grab active:cursor-grabbing",
           "transition-all duration-200",
           isDragging && "shadow-xl scale-105",
@@ -208,7 +209,8 @@ const SliderButton = ({
         )}
         style={{ 
           transform: `translateX(${sliderPosition}px)`,
-          transition: isDragging ? 'none' : 'transform 0.3s ease-out'
+          transition: isDragging ? 'none' : 'transform 0.3s ease-out',
+          borderRadius: '100px'
         }}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
