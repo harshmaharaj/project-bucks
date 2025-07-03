@@ -218,7 +218,7 @@ const ProjectDetails = () => {
             <CardHeader>
               <CardTitle>Project Overview</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-2">
               <Tabs defaultValue="summary" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="summary" className="flex items-center gap-2">
