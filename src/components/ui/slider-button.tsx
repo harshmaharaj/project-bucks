@@ -1,0 +1,196 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface SliderButtonProps {
+  onSlideComplete: () => void;
+  text: string;
+  variant?: 'start' | 'stop';
+  disabled?: boolean;
+  className?: string;
+}
+
+const SliderButton = ({ 
+  onSlideComplete, 
+  text, 
+  variant = 'start', 
+  disabled = false,
+  className 
+}: SliderButtonProps) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [sliderPosition, setSliderPosition] = useState(0);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const handleRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number>();
+
+  const maxPosition = 200; // Approximate width for completion
+  const completionThreshold = 0.85; // 85% of the way
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (disabled || isCompleted) return;
+    setIsDragging(true);
+    e.preventDefault();
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (disabled || isCompleted) return;
+    setIsDragging(true);
+    e.preventDefault();
+  };
+
+  useEffect(() => {
+    const handleMove = (clientX: number) => {
+      if (!isDragging || !sliderRef.current) return;
+
+      const rect = sliderRef.current.getBoundingClientRect();
+      const newPosition = Math.max(0, Math.min(clientX - rect.left - 24, maxPosition));
+      setSliderPosition(newPosition);
+
+      // Check if we've reached the completion threshold
+      if (newPosition >= maxPosition * completionThreshold && !isCompleted) {
+        setIsCompleted(true);
+        setIsDragging(false);
+        
+        // Trigger the action
+        onSlideComplete();
+        
+        // Reset after a short delay
+        setTimeout(() => {
+          setSliderPosition(0);
+          setIsCompleted(false);
+        }, 300);
+      }
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      handleMove(e.clientX);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        handleMove(e.touches[0].clientX);
+      }
+    };
+
+    const handleEnd = () => {
+      if (isDragging && !isCompleted) {
+        // Animate back to start if not completed
+        animationRef.current = requestAnimationFrame(() => {
+          setSliderPosition(prev => {
+            const newPos = prev * 0.9;
+            if (newPos < 2) {
+              setIsDragging(false);
+              return 0;
+            }
+            animationRef.current = requestAnimationFrame(() => setSliderPosition(newPos));
+            return newPos;
+          });
+        });
+      } else {
+        setIsDragging(false);
+      }
+    };
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('mouseup', handleEnd);
+      document.addEventListener('touchend', handleEnd);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchend', handleEnd);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [isDragging, isCompleted, onSlideComplete]);
+
+  const progressPercentage = (sliderPosition / maxPosition) * 100;
+  const isNearCompletion = progressPercentage > 70;
+
+  return (
+    <div 
+      ref={sliderRef}
+      className={cn(
+        "relative h-14 rounded-lg overflow-hidden cursor-pointer select-none",
+        variant === 'start' 
+          ? "bg-gradient-to-r from-green-500 to-green-600" 
+          : "bg-gradient-to-r from-red-500 to-red-600",
+        disabled && "opacity-50 cursor-not-allowed",
+        className
+      )}
+    >
+      {/* Progress Background */}
+      <div 
+        className={cn(
+          "absolute inset-0 transition-all duration-200",
+          variant === 'start' 
+            ? "bg-gradient-to-r from-green-400 to-green-500" 
+            : "bg-gradient-to-r from-red-400 to-red-500"
+        )}
+        style={{ 
+          width: `${Math.min(progressPercentage + 15, 100)}%`,
+          opacity: isDragging ? 0.8 : 0 
+        }}
+      />
+      
+      {/* Text */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span 
+          className={cn(
+            "text-white font-medium transition-all duration-200",
+            isDragging ? "text-sm" : "text-base",
+            isNearCompletion && "animate-pulse"
+          )}
+        >
+          {isCompleted ? 'Completed!' : text}
+        </span>
+      </div>
+      
+      {/* Slider Handle */}
+      <div
+        ref={handleRef}
+        className={cn(
+          "absolute top-1 left-1 bottom-1 w-12 bg-white rounded-md shadow-lg",
+          "flex items-center justify-center cursor-grab active:cursor-grabbing",
+          "transition-all duration-200",
+          isDragging && "shadow-xl scale-105",
+          isCompleted && "bg-green-100"
+        )}
+        style={{ 
+          transform: `translateX(${sliderPosition}px)`,
+          transition: isDragging ? 'none' : 'transform 0.3s ease-out'
+        }}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+      >
+        <ChevronRight 
+          className={cn(
+            "w-5 h-5 transition-all duration-200",
+            variant === 'start' ? "text-green-600" : "text-red-600",
+            isDragging && "scale-110",
+            isCompleted && "text-green-700"
+          )} 
+        />
+      </div>
+      
+      {/* Completion Indicator */}
+      <div 
+        className="absolute right-2 top-1/2 transform -translate-y-1/2"
+        style={{ opacity: isNearCompletion ? 1 : 0.3 }}
+      >
+        <div className={cn(
+          "w-2 h-2 rounded-full",
+          variant === 'start' ? "bg-green-200" : "bg-red-200"
+        )} />
+      </div>
+    </div>
+  );
+};
+
+export default SliderButton;
