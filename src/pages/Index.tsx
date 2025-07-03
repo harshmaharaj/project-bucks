@@ -22,7 +22,6 @@ const Index = () => {
     stopTimer, 
     addProject, 
     deleteProject, 
-    resetWeek,
     refetchProjects
   } = useProjects();
 
@@ -134,7 +133,6 @@ const Index = () => {
                   onStartTimer={startTimer}
                   onStopTimer={stopTimer}
                   onDeleteProject={deleteProject}
-                  onResetWeek={resetWeek}
                 />
               ))
             )}

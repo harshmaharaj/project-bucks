@@ -206,36 +206,6 @@ export const useProjects = () => {
     }
   };
 
-  const resetWeek = async (projectId: string) => {
-    try {
-      // Calculate the start of the current week (Monday)
-      const now = new Date();
-      const currentDay = now.getDay();
-      const daysToMonday = currentDay === 0 ? 6 : currentDay - 1;
-      const weekStart = new Date(now);
-      weekStart.setDate(now.getDate() - daysToMonday);
-      weekStart.setHours(0, 0, 0, 0);
-
-      const weekStartTimestamp = weekStart.getTime();
-
-      // Delete all time sessions for this week
-      const { error: sessionsError } = await supabase
-        .from('time_sessions')
-        .delete()
-        .eq('project_id', projectId)
-        .gte('start_time', weekStartTimestamp);
-
-      if (sessionsError) throw sessionsError;
-
-      // Fetch updated project data
-      await fetchProjects();
-
-      toast.success('Week reset - This week\'s time sessions have been cleared');
-    } catch (error) {
-      console.error('Error resetting week:', error);
-      toast.error('Failed to reset week');
-    }
-  };
 
   const addProject = (newProject: Project) => {
     setProjects(prev => [newProject, ...prev]);
@@ -254,7 +224,6 @@ export const useProjects = () => {
     stopTimer,
     addProject,
     deleteProject,
-    resetWeek,
     refetchProjects
   };
 };

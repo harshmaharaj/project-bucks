@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Square, DollarSign, MoreVertical, Eye, Trash2, RotateCcw } from 'lucide-react';
+import { Play, Square, DollarSign, MoreVertical, Eye, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -44,7 +44,6 @@ interface ProjectCardProps {
   onStartTimer: (projectId: string) => void;
   onStopTimer: (projectId: string) => void;
   onDeleteProject?: (projectId: string) => void;
-  onResetWeek?: (projectId: string) => void;
 }
 
 const ProjectCard = ({ 
@@ -53,8 +52,7 @@ const ProjectCard = ({
   currentUserId, 
   onStartTimer, 
   onStopTimer,
-  onDeleteProject,
-  onResetWeek
+  onDeleteProject
 }: ProjectCardProps) => {
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -103,11 +101,6 @@ const ProjectCard = ({
     setIsDeleteDialogOpen(false);
   };
 
-  const handleResetWeek = () => {
-    if (onResetWeek) {
-      onResetWeek(project.id);
-    }
-  };
 
   return (
     <>
@@ -126,10 +119,6 @@ const ProjectCard = ({
                   <DropdownMenuItem onClick={handleViewProject} className="cursor-pointer">
                     <Eye className="mr-2 h-4 w-4" />
                     View project
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleResetWeek} className="cursor-pointer">
-                    <RotateCcw className="mr-2 h-4 w-4" />
-                    Reset week
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => setIsDeleteDialogOpen(true)} 
