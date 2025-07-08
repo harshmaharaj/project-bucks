@@ -88,7 +88,7 @@ const Auth = () => {
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8">
+        <div className="p-8">
           <h2 className="text-2xl font-semibold text-center mb-6">
             {isLogin ? 'Sign In' : 'Sign Up'}
           </h2>
