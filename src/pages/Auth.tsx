@@ -88,91 +88,88 @@ const Auth = () => {
           </p>
         </div>
 
-        <Card className="shadow-lg border-0">
-          <CardHeader>
-            <CardTitle className="text-2xl text-center">
-              {isLogin ? 'Sign In' : 'Sign Up'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <div>
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required={!isLogin}
-                    className="mt-1"
-                    placeholder="Enter your full name"
-                  />
-                </div>
-              )}
-              
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          <h2 className="text-2xl font-semibold text-center mb-6">
+            {isLogin ? 'Sign In' : 'Sign Up'}
+          </h2>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="fullName">Full Name</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  id="fullName"
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required={!isLogin}
                   className="mt-1"
-                  placeholder="Enter your email"
+                  placeholder="Enter your full name"
                 />
               </div>
+            )}
+            
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-1"
+                placeholder="Enter your email"
+              />
+            </div>
 
-              <div>
-                <Label htmlFor="password">Password</Label>
-                <div className="relative mt-1">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="pr-10"
-                    placeholder="Enter your password"
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <Button 
-                type="submit" 
-                className="w-full h-12 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Processing...' : (isLogin ? 'Sign In' : 'Sign Up')}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                {isLogin ? "Don't have an account?" : "Already have an account?"}
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <div className="relative mt-1">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="pr-10"
+                  placeholder="Enter your password"
+                />
                 <button
                   type="button"
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="ml-1 text-blue-600 hover:text-blue-700 font-medium"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
                 >
-                  {isLogin ? 'Sign up' : 'Sign in'}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
                 </button>
-              </p>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+
+            <Button 
+              type="submit" 
+              className="w-full h-12 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Processing...' : (isLogin ? 'Sign In' : 'Sign Up')}
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              {isLogin ? "Don't have an account?" : "Already have an account?"}
+              <button
+                type="button"
+                onClick={() => setIsLogin(!isLogin)}
+                className="ml-1 text-blue-600 hover:text-blue-700 font-medium"
+              >
+                {isLogin ? 'Sign up' : 'Sign in'}
+              </button>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
