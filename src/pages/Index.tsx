@@ -58,6 +58,16 @@ const Index = () => {
       }
     }
   };
+  
+  // Calculate daily workload based on committed weekly hours
+  const calculateDailyWorkload = () => {
+    const totalWeeklyHours = projects.reduce((sum, project) => sum + project.committed_weekly_hours, 0);
+    const totalMonthlyHours = totalWeeklyHours * 4.33; // Average weeks per month
+    const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+    const dailyHours = totalMonthlyHours / daysInMonth;
+    return dailyHours.toFixed(1);
+  };
+  
   useEffect(() => {
     if (user && userRole) {
       fetchAllUsers();
@@ -82,11 +92,13 @@ const Index = () => {
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Project Bucks</h1>
-            <p className="text-gray-600">
-              {userRole === 'super_admin' ? 'Admin Dashboard - All Projects' : 'Your personal project tracker'}
-            </p>
+            {/* Daily Workload - Only for regular users */}
+            {userRole !== 'super_admin' && projects.length > 0 && (
+              <p className="text-lg font-medium text-blue-600">
+                Daily Workload: {calculateDailyWorkload()}hrs
+              </p>
+            )}
           </div>
 
           {/* Earnings Chart - Only for regular users */}
