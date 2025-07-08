@@ -85,7 +85,7 @@ const Index = () => {
             
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Project Bucks</h1>
             <p className="text-gray-600">
-              {userRole === 'super_admin' ? 'Admin Dashboard - All Projects' : 'Track your freelance projects'}
+              {userRole === 'super_admin' ? 'Admin Dashboard - All Projects' : 'Your personal project tracker'}
             </p>
           </div>
 
