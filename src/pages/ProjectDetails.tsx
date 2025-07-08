@@ -444,9 +444,9 @@ const ProjectDetails = () => {
                     <TableHeader>
                       <TableRow>
                         <TableHead>{viewMode === 'weekly' ? 'Week' : viewMode === 'monthly' ? 'Month' : 'Date & Time'}</TableHead>
-                        <TableHead>{viewMode === 'all' ? 'Hours' : 'Total Time Spent'}</TableHead>
+                        <TableHead>{viewMode === 'all' ? 'Hours' : 'Time Spent'}</TableHead>
                         {viewMode === 'all' && <TableHead className="w-12"></TableHead>}
-                        {viewMode !== 'all' && <TableHead>Total Earning</TableHead>}
+                        {viewMode !== 'all' && <TableHead>Earning</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -494,45 +494,58 @@ const ProjectDetails = () => {
                         </TableRow>
                       ))}
                       
-                      {viewMode === 'weekly' && weeklyData.map((week, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">
-                            <div className="text-sm font-semibold">
-                              {week.weekRange}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm font-semibold">
-                              {(week.totalTime / 3600).toFixed(1)}hrs
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm font-semibold">
-                              {project.rate_currency} {week.totalEarnings.toFixed(2)}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {viewMode === 'weekly' && weeklyData.map((week, index) => {
+                        const actualHours = (week.totalTime / 3600).toFixed(1);
+                        const expectedWeeklyHours = project.committed_weekly_hours;
+                        const expectedWeeklyEarnings = expectedWeeklyHours * project.hourly_rate;
+                        
+                        return (
+                          <TableRow key={index}>
+                            <TableCell className="font-medium">
+                              <div className="text-sm font-semibold">
+                                {week.weekRange}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm font-semibold">
+                                {actualHours}hrs/{expectedWeeklyHours}hrs
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm font-semibold">
+                                {Math.round(week.totalEarnings)}/{Math.round(expectedWeeklyEarnings)}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                       
-                      {viewMode === 'monthly' && monthlyData.map((month, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">
-                            <div className="text-sm font-semibold">
-                              {month.monthName}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm font-semibold">
-                              {(month.totalTime / 3600).toFixed(1)}hrs
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm font-semibold">
-                              {project.rate_currency} {month.totalEarnings.toFixed(2)}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {viewMode === 'monthly' && monthlyData.map((month, index) => {
+                        const actualHours = (month.totalTime / 3600).toFixed(1);
+                        // Calculate expected monthly hours (weekly commitment * 4.33 weeks average per month)
+                        const expectedMonthlyHours = Math.round(project.committed_weekly_hours * 4.33);
+                        const expectedMonthlyEarnings = expectedMonthlyHours * project.hourly_rate;
+                        
+                        return (
+                          <TableRow key={index}>
+                            <TableCell className="font-medium">
+                              <div className="text-sm font-semibold">
+                                {month.monthName}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm font-semibold">
+                                {actualHours}hrs/{expectedMonthlyHours}hrs
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm font-semibold">
+                                {Math.round(month.totalEarnings)}/{Math.round(expectedMonthlyEarnings)}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>}
