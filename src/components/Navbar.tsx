@@ -139,17 +139,22 @@ const Navbar = ({ onProjectCreated, showBackButton, onBackClick }: NavbarProps) 
                     <p className="text-sm text-gray-900 mt-1">{user.email}</p>
                   </div>
                   
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">User ID</label>
-                    <p className="text-sm text-gray-500 mt-1 font-mono break-all">{user.id}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Role</label>
-                    <p className="text-sm text-gray-900 mt-1 capitalize">
-                      {userRole === 'super_admin' ? 'Super Admin' : 'User'}
-                    </p>
-                  </div>
+                  {/* Only show User ID and Role for admin users */}
+                  {userRole === 'super_admin' && (
+                    <>
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">User ID</label>
+                        <p className="text-sm text-gray-500 mt-1 font-mono break-all">{user.id}</p>
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium text-gray-700">Role</label>
+                        <p className="text-sm text-gray-900 mt-1 capitalize">
+                          {userRole === 'super_admin' ? 'Super Admin' : 'User'}
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* Logout Button */}
