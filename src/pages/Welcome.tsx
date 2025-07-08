@@ -63,10 +63,10 @@ const Welcome = () => {
 
         {/* Action Buttons */}
         <div className="space-y-4">
-          <Button onClick={() => navigate('/auth')} className="w-full h-12 text-lg bg-gray-900 hover:bg-gray-800 text-white rounded-2xl">
+          <Button onClick={() => navigate('/auth?mode=login')} className="w-full h-12 text-lg bg-gray-900 hover:bg-gray-800 text-white rounded-2xl">
             Login
           </Button>
-          <Button onClick={() => navigate('/auth')} variant="outline" className="w-full h-12 text-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-2xl">Register</Button>
+          <Button onClick={() => navigate('/auth?mode=signup')} variant="outline" className="w-full h-12 text-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-2xl">Register</Button>
         </div>
       </div>
     </div>;
