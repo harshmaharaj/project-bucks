@@ -3,7 +3,7 @@
 
 ## App Details
 - **App ID**: app.lovable.443edbf4e9e740b2be5aabd057b3eb48
-- **App Name**: TimeTracker
+- **App Name**: Project Bucks
 - **Bundle Name**: time-track-freelance-zenith
 
 ## Next Steps for iOS Development

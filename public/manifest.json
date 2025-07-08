@@ -1,7 +1,7 @@
 
 {
-  "name": "TimeTracker - Freelance Time Tracking",
-  "short_name": "TimeTracker",
+  "name": "Project Bucks - Freelance Time Tracking",
+  "short_name": "Project Bucks",
   "description": "Mobile time tracking app for freelance projects and client billing",
   "start_url": "/",
   "display": "standalone",
