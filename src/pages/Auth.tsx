@@ -115,7 +115,7 @@ const Auth = () => {
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {!isLogin && (
             <div>
               <Label htmlFor="fullName" className="text-sm font-medium text-gray-700">
