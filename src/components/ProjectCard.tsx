@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { formatTime, calculateEarnings, getWeeklyProgress, getWeeklyTime } from '@/utils/timeUtils';
-import SliderButton from '@/components/ui/slider-button';
+
 
 interface Project {
   id: string;
@@ -178,25 +178,26 @@ const ProjectCard = ({
             </div>
           </div>
 
-          {/* Control Slider - Only for project owner or if it's the user's own project */}
+          {/* Control Buttons - Only for project owner or if it's the user's own project */}
           {canControlTimer && (
             <div className="flex justify-center">
               {project.is_running ? (
-                <SliderButton
-                  onSlideComplete={() => onStopTimer(project.id)}
-                  text="Slide to stop Timer"
-                  variant="stop"
-                  isActive={true}
-                  className="w-full"
-                />
+                <Button
+                  onClick={() => onStopTimer(project.id)}
+                  variant="destructive"
+                  className="w-full bg-red-500 hover:bg-red-600"
+                >
+                  <Square className="mr-2 h-4 w-4" />
+                  Stop Timer
+                </Button>
               ) : (
-                <SliderButton
-                  onSlideComplete={() => onStartTimer(project.id)}
-                  text="Slide to start Timer"
-                  variant="start"
-                  isActive={false}
-                  className="w-full"
-                />
+                <Button
+                  onClick={() => onStartTimer(project.id)}
+                  className="w-full bg-green-500 hover:bg-green-600"
+                >
+                  <Play className="mr-2 h-4 w-4" />
+                  Start Timer
+                </Button>
               )}
             </div>
           )}
