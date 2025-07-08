@@ -2,12 +2,9 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Clock, Users, BarChart3 } from 'lucide-react';
-
 const Welcome = () => {
   const navigate = useNavigate();
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+  return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center">
         {/* Illustration Area */}
         <div className="mb-8">
@@ -36,30 +33,17 @@ const Welcome = () => {
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Welcome to<br />TimeTracker
           </h1>
-          <p className="text-gray-600 text-lg leading-relaxed">
-            Track your time efficiently, manage projects seamlessly, and boost your productivity with our comprehensive time tracking solution.
-          </p>
+          <p className="text-gray-600 text-lg leading-relaxed ">Track Your Time and Earnings of multiple project</p>
         </div>
 
         {/* Action Buttons */}
         <div className="space-y-4">
-          <Button 
-            onClick={() => navigate('/auth')}
-            className="w-full h-12 text-lg bg-gray-900 hover:bg-gray-800 text-white rounded-full"
-          >
+          <Button onClick={() => navigate('/auth')} className="w-full h-12 text-lg bg-gray-900 hover:bg-gray-800 text-white rounded-2xl">
             Login
           </Button>
-          <Button 
-            onClick={() => navigate('/auth')}
-            variant="outline"
-            className="w-full h-12 text-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-full"
-          >
-            Register
-          </Button>
+          <Button onClick={() => navigate('/auth')} variant="outline" className="w-full h-12 text-lg border-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-2xl">Register</Button>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Welcome;
