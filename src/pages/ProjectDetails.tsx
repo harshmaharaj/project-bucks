@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useProjects } from '@/hooks/useProjects';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
@@ -26,6 +27,7 @@ const ProjectDetails = () => {
   const [editingSession, setEditingSession] = useState(null);
   const [deletingSession, setDeletingSession] = useState(null);
   const [chartStartIndex, setChartStartIndex] = useState(0);
+  const [viewMode, setViewMode] = useState('all');
   const project = projects.find(p => p.id === projectId);
 
   // Filter out sessions that don't have an end_time (currently running sessions)
@@ -187,6 +189,84 @@ const ProjectDetails = () => {
     await refetchProjects();
     setDeletingSession(null);
   };
+
+  // Helper function to get week start (Monday)
+  const getWeekStart = (date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    d.setDate(diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+
+  // Helper function to format week range
+  const formatWeekRange = (startDate) => {
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 6);
+    const formatDate = (date) => {
+      const month = date.toLocaleString('default', { month: 'short' });
+      return `${month} ${date.getDate()}`;
+    };
+    return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+  };
+
+  // Group sessions by week
+  const getWeeklyData = () => {
+    const weeklyMap = new Map();
+    
+    sortedSessions.forEach(session => {
+      const sessionDate = new Date(session.start_time);
+      const weekStart = getWeekStart(sessionDate);
+      const weekKey = weekStart.getTime();
+      
+      if (!weeklyMap.has(weekKey)) {
+        weeklyMap.set(weekKey, {
+          weekRange: formatWeekRange(weekStart),
+          sessions: [],
+          totalTime: 0,
+          totalEarnings: 0
+        });
+      }
+      
+      const weekData = weeklyMap.get(weekKey);
+      weekData.sessions.push(session);
+      weekData.totalTime += session.duration;
+      weekData.totalEarnings += (session.duration / 3600) * project.hourly_rate;
+    });
+    
+    return Array.from(weeklyMap.values()).sort((a, b) => b.sessions[0].start_time - a.sessions[0].start_time);
+  };
+
+  // Group sessions by month
+  const getMonthlyData = () => {
+    const monthlyMap = new Map();
+    
+    sortedSessions.forEach(session => {
+      const sessionDate = new Date(session.start_time);
+      const monthKey = `${sessionDate.getFullYear()}-${sessionDate.getMonth()}`;
+      const monthName = sessionDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+      
+      if (!monthlyMap.has(monthKey)) {
+        monthlyMap.set(monthKey, {
+          monthName,
+          sessions: [],
+          totalTime: 0,
+          totalEarnings: 0
+        });
+      }
+      
+      const monthData = monthlyMap.get(monthKey);
+      monthData.sessions.push(session);
+      monthData.totalTime += session.duration;
+      monthData.totalEarnings += (session.duration / 3600) * project.hourly_rate;
+    });
+    
+    return Array.from(monthlyMap.values()).sort((a, b) => b.sessions[0].start_time - a.sessions[0].start_time);
+  };
+
+  const weeklyData = getWeeklyData();
+  const monthlyData = getMonthlyData();
   return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <PullToRefresh isRefreshing={isRefreshing} pullDistance={pullDistance} threshold={80} />
       <Navbar showBackButton={true} onBackClick={() => navigate('/')} />
@@ -338,9 +418,21 @@ const ProjectDetails = () => {
           {/* Time Sessions Table */}
           <Card className="rounded-2xl">
             <CardHeader className="py-[12px]">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Calendar className="w-3 h-3" />
-                Time Sessions
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="w-3 h-3" />
+                  Time Sessions
+                </div>
+                <Select value={viewMode} onValueChange={setViewMode}>
+                  <SelectTrigger className="w-32 h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
               </CardTitle>
             </CardHeader>
             <CardContent className="mx-0 px-[8px]">
@@ -351,13 +443,15 @@ const ProjectDetails = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Date & Time</TableHead>
-                        <TableHead>Hours</TableHead>
-                        <TableHead className="w-12"></TableHead>
+                        <TableHead>{viewMode === 'weekly' ? 'Week' : viewMode === 'monthly' ? 'Month' : 'Date & Time'}</TableHead>
+                        <TableHead>{viewMode === 'all' ? 'Hours' : 'Total Time Spent'}</TableHead>
+                        {viewMode === 'all' && <TableHead className="w-12"></TableHead>}
+                        {viewMode !== 'all' && <TableHead>Total Earning</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {sortedSessions.map(session => <TableRow key={session.id}>
+                      {viewMode === 'all' && sortedSessions.map(session => (
+                        <TableRow key={session.id}>
                           <TableCell className="font-medium">
                             <div className="space-y-1">
                               <div className="text-sm font-semibold">
@@ -397,7 +491,48 @@ const ProjectDetails = () => {
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
-                        </TableRow>)}
+                        </TableRow>
+                      ))}
+                      
+                      {viewMode === 'weekly' && weeklyData.map((week, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">
+                            <div className="text-sm font-semibold">
+                              {week.weekRange}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm font-semibold">
+                              {(week.totalTime / 3600).toFixed(1)}hrs
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm font-semibold">
+                              {project.rate_currency} {week.totalEarnings.toFixed(2)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      
+                      {viewMode === 'monthly' && monthlyData.map((month, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">
+                            <div className="text-sm font-semibold">
+                              {month.monthName}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm font-semibold">
+                              {(month.totalTime / 3600).toFixed(1)}hrs
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm font-semibold">
+                              {project.rate_currency} {month.totalEarnings.toFixed(2)}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                     </TableBody>
                   </Table>
                 </div>}
