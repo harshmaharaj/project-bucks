@@ -19,18 +19,22 @@ interface Project {
 interface EditProjectModalProps {
   project: Project;
   onProjectUpdated: (project: Project) => void;
+  isOpen?: boolean;
+  onClose?: () => void;
   trigger?: React.ReactNode;
 }
 
-const EditProjectModal = ({ project, onProjectUpdated, trigger }: EditProjectModalProps) => {
+const EditProjectModal = ({ project, onProjectUpdated, isOpen, onClose, trigger }: EditProjectModalProps) => {
   const [projectName, setProjectName] = useState(project.name);
   const [projectRate, setProjectRate] = useState(project.hourly_rate);
   const [projectCurrency, setProjectCurrency] = useState(project.rate_currency);
   const [projectWeeklyHours, setProjectWeeklyHours] = useState(project.committed_weekly_hours);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
   const { toast } = useToast();
+
+  const isDialogOpen = isOpen ?? false;
+  const handleClose = onClose ?? (() => {});
 
   // Reset form when project changes or dialog opens
   useEffect(() => {
@@ -78,7 +82,7 @@ const EditProjectModal = ({ project, onProjectUpdated, trigger }: EditProjectMod
       if (error) throw error;
 
       onProjectUpdated(data);
-      setIsDialogOpen(false);
+      handleClose();
       
       toast({
         title: "Success",
@@ -104,7 +108,7 @@ const EditProjectModal = ({ project, onProjectUpdated, trigger }: EditProjectMod
   );
 
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog open={isDialogOpen} onOpenChange={handleClose}>
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
@@ -166,7 +170,7 @@ const EditProjectModal = ({ project, onProjectUpdated, trigger }: EditProjectMod
           <div className="flex gap-2">
             <Button 
               variant="outline" 
-              onClick={() => setIsDialogOpen(false)}
+              onClick={handleClose}
               className="flex-1"
               disabled={isLoading}
             >

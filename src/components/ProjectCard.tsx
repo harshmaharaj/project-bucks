@@ -240,6 +240,16 @@ const ProjectCard = ({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Edit Project Modal */}
+        {onProjectUpdated && (
+          <EditProjectModal 
+            project={project}
+            onProjectUpdated={onProjectUpdated}
+            isOpen={isEditDialogOpen}
+            onClose={() => setIsEditDialogOpen(false)}
+          />
+        )}
       </Card>
     </>
   );
