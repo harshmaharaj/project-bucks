@@ -206,9 +206,18 @@ export const useProjects = () => {
     }
   };
 
-
   const addProject = (newProject: Project) => {
     setProjects(prev => [newProject, ...prev]);
+  };
+
+  const updateProject = (updatedProject: Project) => {
+    setProjects(prev => 
+      prev.map(project => 
+        project.id === updatedProject.id 
+          ? { ...project, ...updatedProject }
+          : project
+      )
+    );
   };
 
   useEffect(() => {
@@ -223,6 +232,7 @@ export const useProjects = () => {
     startTimer,
     stopTimer,
     addProject,
+    updateProject,
     deleteProject,
     refetchProjects
   };
