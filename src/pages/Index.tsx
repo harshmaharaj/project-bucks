@@ -23,7 +23,8 @@ const Index = () => {
     stopTimer,
     addProject,
     deleteProject,
-    refetchProjects
+    refetchProjects,
+    updateProject
   } = useProjects();
 
   // Pull to refresh functionality
@@ -118,7 +119,7 @@ const Index = () => {
                     {userRole === 'super_admin' ? 'No projects found across all users.' : 'No projects yet. Create your first project to start tracking time!'}
                   </p>
                 </CardContent>
-              </Card> : projects.map(project => <ProjectCard key={project.id} project={project} userRole={userRole} currentUserId={user?.id} onStartTimer={startTimer} onStopTimer={stopTimer} onDeleteProject={deleteProject} />)}
+              </Card> : projects.map(project => <ProjectCard key={project.id} project={project} userRole={userRole} currentUserId={user?.id} onStartTimer={startTimer} onStopTimer={stopTimer} onDeleteProject={deleteProject} onProjectUpdated={updateProject} />)}
           </div>
         </div>
       </div>

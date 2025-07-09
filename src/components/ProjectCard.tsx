@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Square, DollarSign, MoreVertical, Eye, Trash2 } from 'lucide-react';
+import { Play, Square, DollarSign, MoreVertical, Eye, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { formatTime, calculateEarnings, getWeeklyProgress, getWeeklyTime } from '@/utils/timeUtils';
+import EditProjectModal from '@/components/EditProjectModal';
 
 
 interface Project {
@@ -44,6 +45,7 @@ interface ProjectCardProps {
   onStartTimer: (projectId: string) => void;
   onStopTimer: (projectId: string) => void;
   onDeleteProject?: (projectId: string) => void;
+  onProjectUpdated?: (project: Project) => void;
 }
 
 const ProjectCard = ({ 
@@ -52,11 +54,13 @@ const ProjectCard = ({
   currentUserId, 
   onStartTimer, 
   onStopTimer,
-  onDeleteProject
+  onDeleteProject,
+  onProjectUpdated
 }: ProjectCardProps) => {
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(Date.now());
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
   // Update current time every second for running timers
   useEffect(() => {
@@ -120,6 +124,12 @@ const ProjectCard = ({
                     <Eye className="mr-2 h-4 w-4" />
                     View project
                   </DropdownMenuItem>
+                  {onProjectUpdated && (
+                    <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)} className="cursor-pointer">
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit project
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem 
                     onClick={() => setIsDeleteDialogOpen(true)} 
                     className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
@@ -230,6 +240,16 @@ const ProjectCard = ({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Edit Project Modal */}
+        {onProjectUpdated && (
+          <EditProjectModal 
+            project={project}
+            onProjectUpdated={onProjectUpdated}
+            isOpen={isEditDialogOpen}
+            onClose={() => setIsEditDialogOpen(false)}
+          />
+        )}
       </Card>
     </>
   );
