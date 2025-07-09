@@ -100,18 +100,13 @@ const EditProjectModal = ({ project, onProjectUpdated, isOpen, onClose, trigger 
     }
   };
 
-  const defaultTrigger = (
-    <Button variant="ghost" size="sm" className="w-full justify-start text-left">
-      <Edit className="mr-2 h-4 w-4" />
-      Edit project
-    </Button>
-  );
-
   return (
     <Dialog open={isDialogOpen} onOpenChange={handleClose}>
-      <DialogTrigger asChild>
-        {trigger || defaultTrigger}
-      </DialogTrigger>
+      {trigger && (
+        <DialogTrigger asChild>
+          {trigger}
+        </DialogTrigger>
+      )}
       <DialogContent className="w-11/12 max-w-md mx-auto">
         <DialogHeader>
           <DialogTitle>Edit Project</DialogTitle>
