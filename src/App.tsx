@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import Users from "./pages/Users";
 import UserProjects from "./pages/UserProjects";
 import ProjectDetails from "./pages/ProjectDetails";
+import EmailVerified from "./pages/EmailVerified";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
                 <ProjectDetails />
               </ProtectedRoute>
             } />
+            <Route path="/email-verified" element={<EmailVerified />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
