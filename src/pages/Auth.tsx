@@ -62,14 +62,19 @@ const Auth = () => {
           navigate('/dashboard');
         }
       } else {
+        console.log('🚀 Starting signup process...');
         const { error } = await signUp(email, password, fullName);
+        console.log('📝 Signup result:', { error });
+        
         if (error) {
+          console.log('❌ Signup error detected, showing toast...');
           toast({
             title: "Signup Error", 
             description: error.message,
             variant: "destructive"
           });
         } else {
+          console.log('✅ Signup successful, showing success toast...');
           toast({
             title: "Success",
             description: "Account created successfully! Please check your email to verify your account."
