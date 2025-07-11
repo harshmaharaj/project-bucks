@@ -94,44 +94,56 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    // First check if user already exists
-    const { data: existingUser, error: checkError } = await supabase
-      .from('profiles')
-      .select('email')
-      .eq('email', email)
-      .single();
+    try {
+      const normalizedEmail = email.toLowerCase().trim();
+      
+      // Check if user already exists in profiles table
+      const { data: existingUser, error: checkError } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', normalizedEmail)
+        .maybeSingle();
 
-    if (existingUser) {
-      return { 
-        error: { 
-          message: "User already registered. Please login instead." 
-        } 
-      };
-    }
+      console.log('Checking existing user for email:', normalizedEmail, 'Result:', existingUser);
 
-    // If no existing user found (404 is expected), proceed with signup
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error('Error checking existing user:', checkError);
-      return { 
-        error: { 
-          message: "Error checking user registration status. Please try again." 
-        } 
-      };
-    }
-
-    const redirectUrl = `${window.location.origin}/email-verified`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName
-        }
+      if (existingUser) {
+        console.log('User already exists, returning error');
+        return { 
+          error: { 
+            message: "User already registered. Please login instead." 
+          } 
+        };
       }
-    });
-    return { error };
+
+      if (checkError) {
+        console.error('Error checking existing user:', checkError);
+      }
+
+      console.log('No existing user found, proceeding with signup');
+
+      // Proceed with signup
+      const redirectUrl = `${window.location.origin}/email-verified`;
+      
+      const { error } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: fullName
+          }
+        }
+      });
+      
+      return { error };
+    } catch (error) {
+      console.error('Signup error:', error);
+      return { 
+        error: { 
+          message: "An error occurred during registration. Please try again." 
+        } 
+      };
+    }
   };
 
   const signOut = async () => {
