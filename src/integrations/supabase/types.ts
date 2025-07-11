@@ -148,6 +148,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_user_and_data: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"]

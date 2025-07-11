@@ -1,12 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
-import { Users as UsersIcon, User } from 'lucide-react';
+import { Users as UsersIcon, User, MoreVertical, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
+import DeleteUserModal from '@/components/DeleteUserModal';
 
 interface UserProfile {
   id: string;
@@ -19,6 +27,8 @@ interface UserProfile {
 const Users = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{ id: string; email: string } | null>(null);
   const { userRole } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -89,6 +99,16 @@ const Users = () => {
     navigate(`/user/${userId}`, { state: { userEmail } });
   };
 
+  const handleDeleteClick = (e: React.MouseEvent, userId: string, userEmail: string) => {
+    e.stopPropagation(); // Prevent card click
+    setSelectedUser({ id: userId, email: userEmail });
+    setDeleteModalOpen(true);
+  };
+
+  const handleUserDeleted = () => {
+    fetchUsers(); // Refresh the user list
+  };
+
   if (userRole !== 'super_admin') {
     return null;
   }
@@ -147,11 +167,42 @@ const Users = () => {
                         <h3 className="text-lg font-semibold text-gray-900">
                           {user.full_name || 'Unnamed User'}
                         </h3>
+                        <p className="text-sm text-gray-500">{user.email}</p>
+                        <span className={`inline-block px-2 py-1 text-xs rounded-full ${
+                          user.role === 'super_admin' 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {user.role === 'super_admin' ? 'Admin' : 'User'}
+                        </span>
                       </div>
-                      <div className="text-right">
-                        <div className="text-xs text-gray-500">
-                          Click to view projects
+                      <div className="flex items-center space-x-2">
+                        <div className="text-right">
+                          <div className="text-xs text-gray-500">
+                            Click to view projects
+                          </div>
                         </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => e.stopPropagation()}
+                              className="h-8 w-8 p-0"
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={(e) => handleDeleteClick(e, user.id, user.email)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete User
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
                   </CardContent>
@@ -161,6 +212,17 @@ const Users = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete User Modal */}
+      {selectedUser && (
+        <DeleteUserModal
+          isOpen={deleteModalOpen}
+          onClose={() => setDeleteModalOpen(false)}
+          userId={selectedUser.id}
+          userEmail={selectedUser.email}
+          onUserDeleted={handleUserDeleted}
+        />
+      )}
     </div>
   );
 };
