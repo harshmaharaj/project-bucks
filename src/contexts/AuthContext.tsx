@@ -94,6 +94,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
+    // First check if user already exists
+    const { data: existingUser, error: checkError } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('email', email)
+      .single();
+
+    if (existingUser) {
+      return { 
+        error: { 
+          message: "User already registered. Please login instead." 
+        } 
+      };
+    }
+
+    // If no existing user found (404 is expected), proceed with signup
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('Error checking existing user:', checkError);
+      return { 
+        error: { 
+          message: "Error checking user registration status. Please try again." 
+        } 
+      };
+    }
+
     const redirectUrl = `${window.location.origin}/email-verified`;
     
     const { error } = await supabase.auth.signUp({
