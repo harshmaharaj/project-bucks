@@ -97,31 +97,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const normalizedEmail = email.toLowerCase().trim();
       
-      // Check if user already exists in profiles table
-      const { data: existingUser, error: checkError } = await supabase
+      console.log('🔍 Checking if user exists for email:', normalizedEmail);
+      
+      // FIRST: Check if user already exists in profiles table
+      const { data: existingUsers, error: checkError } = await supabase
         .from('profiles')
-        .select('email')
-        .eq('email', normalizedEmail)
-        .maybeSingle();
+        .select('email, id')
+        .eq('email', normalizedEmail);
 
-      console.log('Checking existing user for email:', normalizedEmail, 'Result:', existingUser);
+      console.log('📋 Database check result:', { existingUsers, checkError });
 
-      if (existingUser) {
-        console.log('User already exists, returning error');
+      // If there's an error checking the database
+      if (checkError) {
+        console.error('❌ Error checking existing user:', checkError);
         return { 
           error: { 
-            message: "User already registered. Please login instead." 
+            message: "Error checking user registration status. Please try again." 
           } 
         };
       }
 
-      if (checkError) {
-        console.error('Error checking existing user:', checkError);
+      // If user already exists, return error immediately
+      if (existingUsers && existingUsers.length > 0) {
+        console.log('⚠️ User already exists! Blocking signup.');
+        return { 
+          error: { 
+            message: "User already exists. Please login instead." 
+          } 
+        };
       }
 
-      console.log('No existing user found, proceeding with signup');
+      console.log('✅ No existing user found. Proceeding with signup...');
 
-      // Proceed with signup
+      // ONLY IF USER DOESN'T EXIST: Proceed with signup
       const redirectUrl = `${window.location.origin}/email-verified`;
       
       const { error } = await supabase.auth.signUp({
@@ -135,9 +143,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       });
       
+      if (error) {
+        console.error('❌ Signup error:', error);
+      } else {
+        console.log('📧 Verification email sent successfully');
+      }
+      
       return { error };
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error('❌ Unexpected signup error:', error);
       return { 
         error: { 
           message: "An error occurred during registration. Please try again." 
