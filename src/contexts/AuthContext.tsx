@@ -94,19 +94,70 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    const redirectUrl = `${window.location.origin}/email-verified`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName
-        }
+    try {
+      const normalizedEmail = email.toLowerCase().trim();
+      
+      console.log('🔍 Checking if user exists for email:', normalizedEmail);
+      
+      // FIRST: Check if user already exists in profiles table
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('profiles')
+        .select('email, id')
+        .eq('email', normalizedEmail);
+
+      console.log('📋 Database check result:', { existingUsers, checkError });
+
+      // If there's an error checking the database
+      if (checkError) {
+        console.error('❌ Error checking existing user:', checkError);
+        return { 
+          error: { 
+            message: "Error checking user registration status. Please try again." 
+          } 
+        };
       }
-    });
-    return { error };
+
+      // If user already exists, return error immediately
+      if (existingUsers && existingUsers.length > 0) {
+        console.log('⚠️ User already exists! Blocking signup.');
+        return { 
+          error: { 
+            message: "User already exists. Please login instead." 
+          } 
+        };
+      }
+
+      console.log('✅ No existing user found. Proceeding with signup...');
+
+      // ONLY IF USER DOESN'T EXIST: Proceed with signup
+      const redirectUrl = `${window.location.origin}/email-verified`;
+      
+      const { error } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: fullName
+          }
+        }
+      });
+      
+      if (error) {
+        console.error('❌ Signup error:', error);
+      } else {
+        console.log('📧 Verification email sent successfully');
+      }
+      
+      return { error };
+    } catch (error) {
+      console.error('❌ Unexpected signup error:', error);
+      return { 
+        error: { 
+          message: "An error occurred during registration. Please try again." 
+        } 
+      };
+    }
   };
 
   const signOut = async () => {
